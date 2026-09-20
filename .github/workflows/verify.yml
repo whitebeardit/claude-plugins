@@ -1,0 +1,146 @@
+name: verify
+
+# The free half of the pre-push hook, repeated here so that anything arriving
+# by another route - a web edit, a fork's pull request, a clone that never ran
+# `git config core.hooksPath .githooks` - is still checked.
+#
+# Deliberately credential-free and Python-only. The paid eval suite is not run
+# here; it runs locally before a push. See .githooks/pre-push.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install check dependencies
+        run: pip install --quiet pyyaml
+
+      - name: Manifests are valid JSON and internally consistent
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, sys
+
+          fail = []
+          market = json.load(open(".claude-plugin/marketplace.json"))
+          entries = {p["name"]: p for p in market["plugins"]}
+
+          for manifest in sorted(pathlib.Path(".").glob("*/.claude-plugin/plugin.json")):
+              plugin_dir = manifest.parent.parent.name
+              data = json.load(open(manifest))
+              name = data.get("name")
+              if name != plugin_dir:
+                  fail.append(f"{manifest}: name {name!r} != directory {plugin_dir!r}")
+              if name not in entries:
+                  fail.append(f"{name}: not listed in marketplace.json")
+                  continue
+              entry = entries[name]
+              if entry.get("source") != f"./{plugin_dir}":
+                  fail.append(f"{name}: marketplace source {entry.get('source')!r} does not point at ./{plugin_dir}")
+              # plugin.json always wins, so a version here too can silently mask it.
+              if "version" in entry:
+                  fail.append(f"{name}: remove 'version' from the marketplace entry; plugin.json is the source of truth")
+              if not data.get("version"):
+                  fail.append(f"{name}: plugin.json has no version")
+              print(f"ok  {name} v{data.get('version')}")
+
+          for name in entries:
+              if not pathlib.Path(name, ".claude-plugin", "plugin.json").exists():
+                  fail.append(f"{name}: listed in marketplace.json but has no plugin.json")
+
+          if fail:
+              print("\n".join("FAIL " + f for f in fail), file=sys.stderr)
+              sys.exit(1)
+          PY
+
+      - name: Version in plugin.json matches the release manifest
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, sys
+          tracked = json.load(open(".release-please-manifest.json"))
+          fail = []
+          for plugin, version in tracked.items():
+              manifest = pathlib.Path(plugin, ".claude-plugin", "plugin.json")
+              if not manifest.exists():
+                  fail.append(f"{plugin}: tracked for release but has no plugin.json")
+                  continue
+              declared = json.load(open(manifest)).get("version")
+              if declared != version:
+                  fail.append(f"{plugin}: plugin.json says {declared}, release manifest says {version}")
+              else:
+                  print(f"ok  {plugin} {version}")
+          if fail:
+              print("\n".join("FAIL " + f for f in fail), file=sys.stderr)
+              sys.exit(1)
+          PY
+
+      - name: Skill, agent and grader frontmatter parses
+        run: |
+          python3 - <<'PY'
+          import pathlib, sys, yaml
+
+          fail = []
+          targets = list(pathlib.Path(".").glob("*/agents/*.md"))
+          targets += list(pathlib.Path(".").glob("*/skills/*/SKILL.md"))
+          targets += list(pathlib.Path(".").glob("*/evals/*/graders/*.md"))
+
+          for path in sorted(targets):
+              text = path.read_text(encoding="utf-8")
+              if not text.startswith("---"):
+                  fail.append(f"{path}: no frontmatter")
+                  continue
+              try:
+                  meta = yaml.safe_load(text.split("---\n")[1])
+              except yaml.YAMLError as exc:
+                  fail.append(f"{path}: invalid YAML frontmatter: {exc}")
+                  continue
+              if not isinstance(meta, dict):
+                  fail.append(f"{path}: frontmatter is not a mapping")
+          print(f"checked {len(targets)} frontmatter block(s)")
+          if fail:
+              print("\n".join("FAIL " + f for f in fail), file=sys.stderr)
+              sys.exit(1)
+          PY
+
+      - name: Unit tests
+        run: |
+          for dir in */tests; do
+            [ -d "$dir" ] || continue
+            plugin="${dir%/tests}"
+            echo "::group::$plugin"
+            ( cd "$plugin" && python3 -m unittest discover -s tests -v )
+            echo "::endgroup::"
+          done
+
+      - name: Fixtures are reproducible
+        run: |
+          rc=0
+          for gen in */evals/fixtures/generate.py; do
+            [ -f "$gen" ] || continue
+            dir="$(dirname "$gen")"
+            echo "regenerating $gen"
+            ( cd "$dir" && python3 generate.py >/dev/null )
+            # Scoped to the fixture directory on purpose: an unscoped diff would
+            # blame the generator for any unrelated change in the tree.
+            if ! git diff --quiet -- "$dir"; then
+              echo "::error::regenerating $gen changed $dir"
+              git diff --stat -- "$dir"
+              rc=1
+            fi
+          done
+          if [ "$rc" -ne 0 ]; then
+            exit "$rc"
+          fi
+          echo "fixtures reproducible"

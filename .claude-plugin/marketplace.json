@@ -12,7 +12,6 @@
       "displayName": "Sherlock Holmes",
       "source": "./sherlock-holmes",
       "description": "Evidence-first incident investigation by trace ID using Grafana Loki and Tempo. Read-only.",
-      "version": "0.1.0",
       "category": "monitoring",
       "license": "MIT",
       "keywords": [

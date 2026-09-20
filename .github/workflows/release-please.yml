@@ -1,0 +1,46 @@
+name: release-please
+
+# Versioning, tagging and changelogs. One Release PR per plugin; merging it
+# bumps the plugin's version, tags the commit as <plugin>-vX.Y.Z and publishes
+# a GitHub Release.
+#
+# Behavioural verification does NOT live here: the eval suite runs as a local
+# pre-push hook (see .githooks/pre-push), so no Claude Code credential is
+# needed in this repository.
+#
+# The default GITHUB_TOKEN is used on purpose. Its only documented limitation
+# is that events it raises do not start other workflows, which would matter if
+# something had to run on the Release PR itself. Nothing does.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Summarise
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+        run: |
+          echo "### Released" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo '${{ steps.release.outputs.paths_released }}' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Pin this in a marketplace entry with \`ref\` and \`sha\`." >> "$GITHUB_STEP_SUMMARY"
