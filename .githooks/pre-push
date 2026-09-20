@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+#
+# Pre-push gate for the plugin marketplace.
+#
+# Always runs the cheap checks (manifest validation, unit tests, fixture
+# determinism). Runs the paid eval suite only for plugins whose behaviour could
+# have changed in the commits being pushed, because a gate that costs money and
+# minutes on every push is a gate that gets bypassed.
+#
+# Install once per clone:   git config core.hooksPath .githooks
+# Skip the paid suite:      SKIP_EVALS=1 git push
+# Force it on any push:     FORCE_EVALS=1 git push
+#
+set -uo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT" || exit 1
+
+RED=$'\033[31m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; DIM=$'\033[2m'; OFF=$'\033[0m'
+say()  { printf '%s\n' "$*"; }
+ok()   { printf '%s✓%s %s\n' "$GREEN" "$OFF" "$*"; }
+warn() { printf '%s!%s %s\n' "$YELLOW" "$OFF" "$*"; }
+die()  { printf '%s✗%s %s\n' "$RED" "$OFF" "$*"; exit 1; }
+
+# Paths that can change what a plugin does, or how it is graded.
+# Everything else (README, docs, LICENSE) skips the paid suite.
+BEHAVIOURAL_RE='^([^/]+)/(agents|skills|evals|tests)/'
+EXCLUDE_RE='/evals/results/'
+
+# ---------------------------------------------------------------- what is being pushed
+
+ranges=()
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+    [ -z "${local_sha:-}" ] && continue
+    case "$local_sha" in *[!0]*) ;; *) continue ;; esac   # deleting a ref: nothing to check
+    if [ -z "${remote_sha:-}" ] || [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+        # New branch on the remote: diff against the default branch if we have it.
+        if git rev-parse --verify --quiet origin/main >/dev/null; then
+            ranges+=("origin/main..$local_sha")
+        else
+            ranges+=("$local_sha~1..$local_sha")
+        fi
+    else
+        ranges+=("$remote_sha..$local_sha")
+    fi
+done
+
+changed=""
+for r in "${ranges[@]:-}"; do
+    [ -z "$r" ] && continue
+    changed+=$'\n'"$(git diff --name-only "$r" 2>/dev/null)"
+done
+changed="$(printf '%s' "$changed" | grep -v '^$' | sort -u)"
+
+if [ -z "$changed" ]; then
+    ok "pre-push: nothing to check"
+    exit 0
+fi
+
+# ---------------------------------------------------------------- plugins in this repo
+
+all_plugins=()
+while IFS= read -r manifest; do
+    all_plugins+=("$(dirname "$(dirname "$manifest")")")
+done < <(find . -mindepth 3 -maxdepth 3 -path './.git' -prune -o -name plugin.json -path '*/.claude-plugin/*' -print | sed 's|^\./||' | sort)
+
+[ ${#all_plugins[@]} -eq 0 ] && { ok "pre-push: no plugins found"; exit 0; }
+
+# Plugins whose behaviour may have changed.
+touched=()
+for p in "${all_plugins[@]}"; do
+    if printf '%s\n' "$changed" | grep -v "$EXCLUDE_RE" | grep -qE "^${p}/(agents|skills|evals|tests)/"; then
+        touched+=("$p")
+    fi
+done
+
+say ""
+say "${DIM}pre-push: $(printf '%s\n' "$changed" | wc -l | tr -d ' ') file(s) in this push${OFF}"
+
+# ---------------------------------------------------------------- cheap checks, always
+
+for p in "${all_plugins[@]}"; do
+    out="$(claude plugin validate "./$p" 2>&1)" \
+        && ok "manifest valid: $p" \
+        || die "manifest invalid: $p"$'\n'"$out"
+done
+
+for p in "${all_plugins[@]}"; do
+    [ -d "$p/tests" ] || continue
+    if ! out="$(cd "$p" && python3 -m unittest discover -s tests 2>&1)"; then
+        say "$out"
+        die "unit tests failed: $p"
+    fi
+    ok "unit tests: $p ($(printf '%s' "$out" | grep -oE 'Ran [0-9]+ test' | grep -oE '[0-9]+' | head -1) tests)"
+done
+
+# Fixtures must be reproducible: regenerating them must not change the tree.
+for p in "${all_plugins[@]}"; do
+    gen="$p/evals/fixtures/generate.py"
+    [ -f "$gen" ] || continue
+    if ! (cd "$(dirname "$gen")" && python3 generate.py >/dev/null 2>&1); then
+        die "fixture generator failed: $gen"
+    fi
+    if ! git diff --quiet -- "$p/evals/fixtures"; then
+        git checkout -- "$p/evals/fixtures" 2>/dev/null || true
+        die "fixtures are not reproducible: regenerating $gen changed the tree"
+    fi
+    ok "fixtures reproducible: $p"
+done
+
+# ---------------------------------------------------------------- paid eval suite
+
+if [ "${SKIP_EVALS:-0}" = "1" ]; then
+    warn "eval suite skipped (SKIP_EVALS=1)"
+    say ""
+    exit 0
+fi
+
+if [ "${FORCE_EVALS:-0}" = "1" ]; then
+    touched=("${all_plugins[@]}")
+fi
+
+if [ ${#touched[@]} -eq 0 ]; then
+    ok "no behavioural changes: eval suite not needed"
+    say "${DIM}  (agents/, skills/, evals/ and tests/ are what trigger it)${OFF}"
+    say ""
+    exit 0
+fi
+
+# The eval sandbox needs bubblewrap with user namespaces. Fail loudly with the fix
+# rather than letting every case silently fall back and pass for the wrong reason.
+if ! command -v bwrap >/dev/null 2>&1 || ! command -v socat >/dev/null 2>&1; then
+    die "eval suite needs bubblewrap and socat: sudo apt-get install bubblewrap socat"$'\n'"   or push with SKIP_EVALS=1 to bypass"
+fi
+if ! bwrap --unshare-user --uid 0 --gid 0 --ro-bind / / -- true 2>/dev/null; then
+    die "bubblewrap cannot create a user namespace."$'\n'"   See ${touched[0]}/evals/README.md for the one-time AppArmor profile,"$'\n'"   or push with SKIP_EVALS=1 to bypass"
+fi
+
+for p in "${touched[@]}"; do
+    cases=$(find "$p/evals" -maxdepth 2 -name prompt.md 2>/dev/null | wc -l | tr -d ' ')
+    say ""
+    warn "behavioural change in $p: running $cases eval case(s)"
+    say "${DIM}  roughly \$0.60-1.00 and ~2 min per case. SKIP_EVALS=1 git push  to bypass.${OFF}"
+    say ""
+    if ! (cd "$p" && claude plugin eval . \
+            --scaffold --trust-plugin --no-publish \
+            --ablation none --judge-model sonnet --threshold 1.0 \
+            --max-cost-usd "${EVAL_BUDGET_USD:-8}" \
+            --allow-tools "Bash(python3 *collect-trace.py*)" </dev/null); then
+        say ""
+        die "eval suite did not pass for $p."$'\n'"   Fix the plugin, or push with SKIP_EVALS=1 if you know why it fails."
+    fi
+    ok "eval suite passed: $p"
+done
+
+say ""
