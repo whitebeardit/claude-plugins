@@ -1,0 +1,38 @@
+[
+  {
+    "case": "01-downstream-503",
+    "trace_id": "2aa803b2e40c97a2490d754a465fe9de",
+    "tempo_available": true,
+    "dir": "01-downstream-503"
+  },
+  {
+    "case": "02-db-timeout-retries",
+    "trace_id": "df34d418bee785c2a1d46b9539d0ccc2",
+    "tempo_available": false,
+    "dir": "02-db-timeout-retries"
+  },
+  {
+    "case": "03-error-only-in-tempo",
+    "trace_id": "c9495e68967f71fcc212c8f6d80597b1",
+    "tempo_available": true,
+    "dir": "03-error-only-in-tempo"
+  },
+  {
+    "case": "04-contradictory-logs",
+    "trace_id": "59d23822d96610672a554274570b5bd7",
+    "tempo_available": true,
+    "dir": "04-contradictory-logs"
+  },
+  {
+    "case": "05-incomplete-trace",
+    "trace_id": "3d31213bebd065c9c19e80638a071b36",
+    "tempo_available": true,
+    "dir": "05-incomplete-trace"
+  },
+  {
+    "case": "06-intermediate-service-error",
+    "trace_id": "84c8614b9b6df5d3565fbdb3f2174e95",
+    "tempo_available": true,
+    "dir": "06-intermediate-service-error"
+  }
+]

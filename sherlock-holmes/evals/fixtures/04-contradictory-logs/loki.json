@@ -1,0 +1,73 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "streams",
+    "result": [
+      {
+        "stream": {
+          "app": "checkout-service",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653748001000000",
+            "{\"level\":\"info\",\"msg\":\"POST /checkout\",\"trace_id\":\"59d23822d96610672a554274570b5bd7\",\"span_id\":\"47cdca0fbfa52967\",\"service\":\"checkout-service\",\"http.method\":\"POST\",\"http.route\":\"/checkout\"}"
+          ],
+          [
+            "1789653748140000000",
+            "{\"level\":\"info\",\"msg\":\"payment confirmed\",\"trace_id\":\"59d23822d96610672a554274570b5bd7\",\"span_id\":\"47cdca0fbfa52967\",\"service\":\"checkout-service\",\"outcome\":\"confirmed\"}"
+          ],
+          [
+            "1789653748148000000",
+            "{\"level\":\"info\",\"msg\":\"HTTP 200\",\"trace_id\":\"59d23822d96610672a554274570b5bd7\",\"span_id\":\"47cdca0fbfa52967\",\"service\":\"checkout-service\",\"http.status_code\":200,\"duration_ms\":148}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "app": "gateway-adapter",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751021000000",
+            "{\"level\":\"info\",\"msg\":\"POST /authorize\",\"trace_id\":\"59d23822d96610672a554274570b5bd7\",\"span_id\":\"747fd60eaaff6161\",\"service\":\"gateway-adapter\",\"http.method\":\"POST\"}"
+          ],
+          [
+            "1789653751100000000",
+            "{\"level\":\"info\",\"msg\":\"charge approved, auth=ABC123\",\"trace_id\":\"59d23822d96610672a554274570b5bd7\",\"span_id\":\"747fd60eaaff6161\",\"service\":\"gateway-adapter\",\"http.status_code\":200,\"auth_code\":\"ABC123\",\"outcome\":\"approved\"}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "app": "payment-service",
+          "level": "error",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751120000000",
+            "{\"level\":\"error\",\"msg\":\"charge declined by gateway (code 51)\",\"trace_id\":\"59d23822d96610672a554274570b5bd7\",\"span_id\":\"51069daff852687e\",\"service\":\"payment-service\",\"gateway_code\":\"51\",\"outcome\":\"declined\"}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "app": "payment-service",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751009000000",
+            "{\"level\":\"info\",\"msg\":\"POST /charge\",\"trace_id\":\"59d23822d96610672a554274570b5bd7\",\"span_id\":\"51069daff852687e\",\"service\":\"payment-service\",\"http.method\":\"POST\"}"
+          ]
+        ]
+      }
+    ],
+    "stats": {}
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "streams",
+    "result": [
+      {
+        "stream": {
+          "service_name": "api",
+          "level": "error",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653753178000000",
+            "{\"level\":\"error\",\"msg\":\"HTTP 500\",\"trace_id\":\"2aa803b2e40c97a2490d754a465fe9de\",\"span_id\":\"68ceca7bca5ea85f\",\"service\":\"api\",\"http.status_code\":500,\"duration_ms\":2178}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "api",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751001000000",
+            "{\"level\":\"info\",\"msg\":\"POST /payment\",\"trace_id\":\"2aa803b2e40c97a2490d754a465fe9de\",\"span_id\":\"68ceca7bca5ea85f\",\"service\":\"api\",\"http.method\":\"POST\",\"http.route\":\"/payment\"}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "customer-service",
+          "level": "error",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653753031000000",
+            "{\"level\":\"error\",\"msg\":\"PostgreSQL connection timeout after 2000ms\",\"trace_id\":\"2aa803b2e40c97a2490d754a465fe9de\",\"span_id\":\"7741fd1428c208be\",\"service\":\"customer-service\",\"db.system\":\"postgresql\",\"duration_ms\":2000,\"exception\":\"ConnectionTimeoutError\"}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "customer-service",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751025000000",
+            "{\"level\":\"info\",\"msg\":\"GET /customers/42\",\"trace_id\":\"2aa803b2e40c97a2490d754a465fe9de\",\"span_id\":\"d0a9ba6a6412ce07\",\"service\":\"customer-service\",\"http.method\":\"GET\"}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "customer-service",
+          "level": "warn",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653753144000000",
+            "{\"level\":\"warn\",\"msg\":\"HTTP 503\",\"trace_id\":\"2aa803b2e40c97a2490d754a465fe9de\",\"span_id\":\"d0a9ba6a6412ce07\",\"service\":\"customer-service\",\"http.status_code\":503,\"duration_ms\":2120}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "payment-service",
+          "level": "error",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653753160000000",
+            "{\"level\":\"error\",\"msg\":\"upstream customer-service returned 503\",\"trace_id\":\"2aa803b2e40c97a2490d754a465fe9de\",\"span_id\":\"b52e4c83b2d4db6d\",\"service\":\"payment-service\",\"upstream\":\"customer-service\",\"upstream.status_code\":503}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "payment-service",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751009000000",
+            "{\"level\":\"info\",\"msg\":\"POST /charge\",\"trace_id\":\"2aa803b2e40c97a2490d754a465fe9de\",\"span_id\":\"b52e4c83b2d4db6d\",\"service\":\"payment-service\",\"http.method\":\"POST\"}"
+          ],
+          [
+            "1789653751021000000",
+            "{\"level\":\"info\",\"msg\":\"calling customer-service GET /customers/42\",\"trace_id\":\"2aa803b2e40c97a2490d754a465fe9de\",\"span_id\":\"8998dc7133b03b27\",\"service\":\"payment-service\",\"http.method\":\"GET\",\"upstream\":\"customer-service\"}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "payment-service",
+          "level": "warn",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653753163000000",
+            "{\"level\":\"warn\",\"msg\":\"HTTP 502\",\"trace_id\":\"2aa803b2e40c97a2490d754a465fe9de\",\"span_id\":\"b52e4c83b2d4db6d\",\"service\":\"payment-service\",\"http.status_code\":502,\"duration_ms\":2155}"
+          ]
+        ]
+      }
+    ],
+    "stats": {}
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "case": "05-incomplete-trace",
+  "trace_id": "3d31213bebd065c9c19e80638a071b36",
+  "services": [
+    "api",
+    "order-service",
+    "fulfillment-service"
+  ],
+  "first_anomaly": {
+    "service": "order-service",
+    "summary": "context deadline exceeded on CLIENT span 'POST fulfillment-service/fulfil' after 29800ms; no server span and no log line from fulfillment-service",
+    "timestamp": "2026-09-17T14:03:00.840Z"
+  },
+  "root_cause_hypothesis": "The call from order-service to fulfillment-service never completed: the client span 'POST fulfillment-service/fulfil' ended with 'context deadline exceeded' after 29800ms, and there is no server span and no log line from fulfillment-service for this trace, so whether fulfillment-service received the request cannot be established. api hit its 30s deadline and returned HTTP 504. Order 77 itself was persisted.",
+  "expected_confidence": "MEDIUM",
+  "accepted_confidence": [
+    "LOW",
+    "MEDIUM"
+  ],
+  "tempo_available": true,
+  "tempo_needed": true,
+  "must_not_claim": [
+    "fulfillment-service crashed",
+    "fulfillment-service received the request",
+    "fulfillment-service is healthy",
+    "order-service is the root cause",
+    "the order was not persisted"
+  ],
+  "notes": "The trace is incomplete on purpose: the last hop has a CLIENT span in order-service but no matching SERVER span in fulfillment-service, and fulfillment-service emitted no logs. A correct investigation points at the deadline exceeded on that client span as the first anomaly, states plainly that evidence for fulfillment-service is missing, and does not fabricate what happened there (crash, overload, network partition and 'never received it' are all unproven). Loki alone only shows a 30 s gap followed by a 504; Tempo is needed to locate the hop where time was lost. Confidence LOW or MEDIUM is acceptable."
+}

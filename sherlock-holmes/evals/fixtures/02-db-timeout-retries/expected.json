@@ -1,0 +1,27 @@
+{
+  "case": "02-db-timeout-retries",
+  "trace_id": "df34d418bee785c2a1d46b9539d0ccc2",
+  "services": [
+    "order-service",
+    "inventory-service"
+  ],
+  "first_anomaly": {
+    "service": "inventory-service",
+    "summary": "DB connection timeout (attempt 1/3)",
+    "timestamp": "2026-09-17T14:02:32.015Z"
+  },
+  "root_cause_hypothesis": "inventory-service could not reach its database: three consecutive connection timeouts (attempts 1/3, 2/3 and 3/3 with 200ms backoff) exhausted the retry budget, inventory-service answered 503 and order-service rejected the order with HTTP 503. Why the database did not answer is not visible in the available data.",
+  "expected_confidence": "MEDIUM",
+  "accepted_confidence": [
+    "MEDIUM"
+  ],
+  "tempo_available": false,
+  "tempo_needed": false,
+  "must_not_claim": [
+    "connection pool exhaustion",
+    "Tempo retention problem",
+    "three independent failures",
+    "the database crashed"
+  ],
+  "notes": "Only Loki has data for this trace; Tempo returns 404. A correct investigation identifies the first anomaly as the attempt-1 DB connection timeout in inventory-service and recognises attempts 2 and 3 as retries of the same failure, not separate incidents. The retry exhaustion explains the 503 chain. The root cause of the timeout itself (network, database load, DNS, credentials) cannot be established from logs alone, so confidence stays MEDIUM. The missing trace is simply absent: nothing in the data supports a claim about Tempo retention or sampling, and nothing supports 'pool exhaustion' over a plain timeout."
+}

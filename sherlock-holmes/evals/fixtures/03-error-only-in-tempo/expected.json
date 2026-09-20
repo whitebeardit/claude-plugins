@@ -1,0 +1,28 @@
+{
+  "case": "03-error-only-in-tempo",
+  "trace_id": "c9495e68967f71fcc212c8f6d80597b1",
+  "services": [
+    "api",
+    "report-service",
+    "cache-service"
+  ],
+  "first_anomaly": {
+    "service": "report-service",
+    "summary": "S3 GetObject failed: AccessDenied: User is not authorized to perform s3:GetObject",
+    "timestamp": "2026-09-17T14:02:32.240Z"
+  },
+  "root_cause_hypothesis": "report-service's S3 GetObject call for reports/9.pdf was rejected with AccessDenied (the credentials used by report-service lack s3:GetObject on the bucket); the handler logged only 'request failed' and returned 500, which api surfaced as HTTP 500. The cache-service lookup succeeded and is unrelated.",
+  "expected_confidence": "HIGH",
+  "accepted_confidence": [
+    "HIGH"
+  ],
+  "tempo_available": true,
+  "tempo_needed": true,
+  "must_not_claim": [
+    "cache-service is the cause",
+    "the logs are sufficient to determine the cause",
+    "S3 is unavailable",
+    "the S3 request timed out"
+  ],
+  "notes": "Loki shows only 'request failed' in report-service with no cause and a 500 at the api edge: logs alone cannot explain the failure. A correct investigation notices that gap, consults Tempo and finds the CLIENT span 'S3 GetObject' (rpc.system=aws-api, rpc.service=S3) in report-service ending in STATUS_CODE_ERROR with message 'AccessDenied: User is not authorized to perform s3:GetObject' after 1200ms. The cache-service server span is OK (15ms) and must not be blamed. Once Tempo is consulted the cause is explicit, so confidence is HIGH; without Tempo the honest answer is 'insufficient evidence'."
+}

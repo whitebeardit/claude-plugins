@@ -1,0 +1,178 @@
+# Sherlock Holmes
+
+Evidence-first incident investigation by trace ID, for Claude Code. Give it a trace ID; it collects the trace from **Grafana Tempo** and the log lines from **Grafana Loki**, rebuilds the timeline, finds the first anomalous event, separates cause from consequence, and tells you how confident it is and what the evidence cannot show.
+
+It is **read-only**. It never modifies production, dashboards, alerts or code.
+
+```
+/sherlock-holmes:trace-debug 4bf92f3577b34da6a3ce929d0e0e4736
+```
+
+## What you get
+
+```
+# Trace investigation
+**Trace:** ...  **Services:** api -> payment-service -> customer-service
+**Sources:** tempo=found loki=9 lines, window 14:02:01-14:03:03 (bounded by tempo)
+
+## Diagnosis            two to four sentences
+## Timeline             the lines that matter, gaps noted
+## First anomalous event
+## Causal chain         first anomaly -> ... -> final symptom, one evidence type per link
+## Probable cause       labelled FACT / INFERENCE / HYPOTHESIS
+## Confidence           HIGH | MEDIUM | LOW, one sentence why
+## Evidence
+## What the evidence does not show
+## Next checks          at most three
+```
+
+The core rule: **never prefer a convincing story to incomplete evidence.** "There is not enough evidence to determine the root cause" is a valid answer, and the agent is built to give it.
+
+## How it works
+
+```
+trace id
+   |
+   v
+collect-trace.py  (deterministic, read-only, stdlib Python)
+   |  1. Tempo  GET /api/traces/<id>      -> span tree, bounds the time window
+   |  2. Loki   query_range |= "<id>"     -> log lines inside [start-pad, end+pad]
+   |  3. normalise, join logs<->spans, dedupe, mark truncation, derive facts
+   v
+compact "prompt cut" + full JSON on disk
+   |
+   v
+sherlock-holmes agent (forked subagent, opus)
+   |  timeline -> first anomaly -> hypotheses -> elimination -> causal chain
+   v
+report with confidence and gaps
+```
+
+Three files do the work:
+
+| File | Role |
+| --- | --- |
+| `skills/trace-debug/scripts/collect-trace.py` | Collects facts. Never decides a cause. |
+| `skills/trace-debug/SKILL.md` | The procedure: how to collect, the investigation protocol, the report format. |
+| `agents/sherlock-holmes.md` | The investigator: identity, rules, prohibitions, confidence rubric. |
+
+Why Tempo first? A trace ID carries no timestamp. Looking a trace up by ID in Tempo is indexed and cheap, and it returns the exact start and end, so the Loki query can be tight instead of scanning hours of every stream. The agent still *reads* logs first; only the collection order is Tempo-first. When Tempo does not have the trace (unsampled, unexported, expired), the collector says so and falls back to a lookback window, or to `--around` / `--start` `--end` if you know roughly when it happened.
+
+## Install
+
+Requirements: Claude Code, Python 3.8+, network access to Loki and Tempo (directly or through Grafana).
+
+From this repository's local marketplace:
+
+```
+/plugin marketplace add /path/to/CLAUDE_PLUGINS
+/plugin install sherlock-holmes@whitebeard-plugins
+```
+
+Or for one session: `claude --plugin-dir /path/to/CLAUDE_PLUGINS/sherlock-holmes`.
+
+## Configure
+
+Credentials live in environment variables, never in the plugin. Two access modes, auto-detected per source (direct wins when both are set):
+
+**Through Grafana** (one token, two datasource UIDs; works with Grafana Cloud and self-hosted):
+
+```bash
+export GRAFANA_URL=https://your-stack.grafana.net
+export GRAFANA_TOKEN=glsa_...            # or GRAFANA_SERVICE_ACCOUNT_TOKEN, or GRAFANA_USERNAME + GRAFANA_PASSWORD
+export GRAFANA_LOKI_UID=grafanacloud-logs
+export GRAFANA_TEMPO_UID=grafanacloud-traces
+export LOKI_SELECTOR='{env="prod"}'
+```
+
+**Direct** (Loki and Tempo URLs; no Grafana needed):
+
+```bash
+export LOKI_URL=https://loki.example.com          # + LOKI_TOKEN, or LOKI_USERNAME + LOKI_PASSWORD, optional LOKI_ORG_ID
+export TEMPO_URL=https://tempo.example.com        # + TEMPO_TOKEN, or TEMPO_USERNAME + TEMPO_PASSWORD, optional TEMPO_ORG_ID
+export LOKI_SELECTOR='{cluster="prod", namespace="shop"}'
+```
+
+Grafana Cloud direct access uses basic auth: username is the numeric instance ID, password is an access policy token. The Grafana Cloud Tempo URL includes `/tempo`.
+
+Tuning, all optional:
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `LOKI_SELECTOR` | required | Stream selector. Never `{}`: the collector refuses to scan everything. |
+| `LOKI_TRACE_FILTER` | `substring` | `substring` = `\|= "<id>"` (works with any log format). `metadata` = `\| trace_id="<id>"` for Loki 3 structured metadata. `json` = `\| json \| trace_id="<id>"`. |
+| `LOKI_TRACE_FIELD` | `trace_id` | Field name for the `metadata` and `json` modes. |
+| `LOKI_SERVICE_LABELS` | `service_name,service,app,container,k8s_container_name,job` | Labels tried, in order, to name the service. Falls back to JSON fields in the line. |
+| `TEMPO_API` | `v1` | `v1` = `/api/traces/<id>` (every Tempo version). `v2` = `/api/v2/traces/<id>`. |
+| `HTTP_TIMEOUT` | `20` | Seconds per request. |
+
+Check the wiring before the first investigation:
+
+```bash
+python3 skills/trace-debug/scripts/collect-trace.py doctor
+```
+
+It reports the access mode per source, whether credentials are present, a labels sample from Loki and an echo from Tempo. It never prints a token.
+
+## Use
+
+```
+/sherlock-holmes:trace-debug <trace-id>
+/sherlock-holmes:trace-debug <trace-id> --around 2026-09-17T14:02:00Z
+/sherlock-holmes:trace-debug 00-4bf92f35...-00f067aa0ba902b7-01      # a traceparent works too
+```
+
+Or ask in plain words: "investigate trace 4bf9..." and Claude delegates to the `sherlock-holmes` agent.
+
+Flags after the trace id go to the collector unchanged: `--around <time>`, `--start`/`--end`, `--lookback 2h` (default 24h, used only when Tempo cannot bound the window), `--pad 30s`, `--fixture <dir>`.
+
+**Project priors.** Put a `.claude/trace-debug/priors.md` in your project with the behaviours that are normal for your system: expected retries, known noisy lines, sampling rules ("ingestion traces are never sampled"), dependencies that time out by design. The agent reads it before forming hypotheses and treats it as team context, not as evidence about the trace.
+
+**Permissions.** The skill pre-approves exactly one command shape, `python3 *collect-trace.py*`, plus `Read`. If your permission mode still prompts, allow that pattern in your settings. The agent has no other tools.
+
+## Semantics the agent relies on
+
+- **Truncation is explicit.** The JSON carries `returned`, `truncated`, `max_lines`, and the cut says "absence of later lines is NOT evidence". Default cap 5000 lines, paginated 1000 per request.
+- **`not_found` in Tempo is not an error.** Unsampled traces are normal. The cut says the tree was unavailable; the agent reasons from logs.
+- **Window provenance.** Every run says what bounded the window: `tempo`, `explicit`, `around` or `now`. A `now` window on an old incident is called out.
+- **Facts, not verdicts.** The collector lists the earliest error log line, the errored span that ended first, and the deepest errored span. Those are starting points; the agent decides what is cause and what is consequence.
+- **Logs and spans are joined by span id** when the log line carries one, so a line reads `<span customer-service:SELECT customer>`.
+- **Repeated lines** are collapsed with `(xN)`. Messages are capped, tokens redacted.
+
+## Optional: Grafana MCP
+
+The collector does not need the Grafana MCP server. If you already run it, the agent can be given its read-only tools for follow-up checks (TraceQL search when you have no trace id, error patterns, metrics), but the timeline always comes from the collector. Do not give the agent the MCP's write tools.
+
+## Test
+
+```bash
+python3 -m unittest discover -s tests -v                # collector, 20 tests, no network
+python3 skills/trace-debug/scripts/collect-trace.py \
+  --trace-id 2aa803b2e40c97a2490d754a465fe9de --fixture evals/fixtures/01-downstream-503
+claude plugin validate .
+claude plugin eval . --scaffold --allow-tools "Bash(python3 *collect-trace.py*)" --ablation none --judge-model sonnet
+```
+
+See `evals/README.md` for the sandbox prerequisites (bubblewrap needs unprivileged user namespaces; Ubuntu 24.04 restricts them by default).
+
+`evals/` has six offline cases mirroring the classic failure shapes: downstream 503 chain, DB timeout with retries and no trace in Tempo, error visible only in spans, contradictory logs with clock skew, incomplete trace, error in an intermediate service. Each case seeds recorded Loki/Tempo responses into the workspace and grades the report with rubrics derived from `expected.json`. All fixture data is synthetic.
+
+To record fixtures from a real incident: `collect-trace.py --trace-id <id> --dump-raw ./some-dir`. Review the dump for personal data before committing it.
+
+## Security
+
+- Read-only by construction: the collector only issues HTTP GET; the agent has `Bash` (pre-approved for the collector only) and `Read`.
+- Credentials come from the environment and are never printed, not even in error messages.
+- Trace ids are validated (16 or 32 hex chars, or a traceparent) before touching a query, which is also what prevents LogQL injection.
+- The collector refuses to run without a Loki selector.
+
+## Roadmap
+
+- V1 (this): Loki + Tempo, timeline, first anomaly, causal chain, confidence, gaps, offline evals.
+- V2: source code as complementary evidence (stack trace -> file:line), TraceQL search when no trace id is known.
+- V3: metrics around the window (error rate, saturation, pool usage).
+- V4: deploy correlation.
+
+## License
+
+MIT

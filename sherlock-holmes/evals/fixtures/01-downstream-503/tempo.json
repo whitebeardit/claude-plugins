@@ -1,0 +1,332 @@
+{
+  "batches": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "api"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "KqgDsuQMl6JJDXVKRl/p3g==",
+              "spanId": "aM7Ke8peqF8=",
+              "name": "POST /payment",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751000000000",
+              "endTimeUnixNano": "1789653753180000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "POST"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/payment"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "500"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "upstream failure: payment-service returned 502"
+              }
+            },
+            {
+              "traceId": "KqgDsuQMl6JJDXVKRl/p3g==",
+              "spanId": "gZkCVk7Q/Ws=",
+              "parentSpanId": "aM7Ke8peqF8=",
+              "name": "POST payment-service/charge",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751005000000",
+              "endTimeUnixNano": "1789653753170000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "POST"
+                  }
+                },
+                {
+                  "key": "peer.service",
+                  "value": {
+                    "stringValue": "payment-service"
+                  }
+                },
+                {
+                  "key": "http.url",
+                  "value": {
+                    "stringValue": "http://payment-service:8080/charge"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "502"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "HTTP 502"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "payment-service"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "KqgDsuQMl6JJDXVKRl/p3g==",
+              "spanId": "tS5Mg7LU220=",
+              "parentSpanId": "gZkCVk7Q/Ws=",
+              "name": "POST /charge",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751008000000",
+              "endTimeUnixNano": "1789653753165000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "POST"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/charge"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "502"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "upstream customer-service returned 503"
+              }
+            },
+            {
+              "traceId": "KqgDsuQMl6JJDXVKRl/p3g==",
+              "spanId": "iZjccTOwOyc=",
+              "parentSpanId": "tS5Mg7LU220=",
+              "name": "GET customer-service/customers/42",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751020000000",
+              "endTimeUnixNano": "1789653753150000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "peer.service",
+                  "value": {
+                    "stringValue": "customer-service"
+                  }
+                },
+                {
+                  "key": "http.url",
+                  "value": {
+                    "stringValue": "http://customer-service:8080/customers/42"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "503"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "HTTP 503"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "customer-service"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "KqgDsuQMl6JJDXVKRl/p3g==",
+              "spanId": "0Km6amQSzgc=",
+              "parentSpanId": "iZjccTOwOyc=",
+              "name": "GET /customers/42",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751024000000",
+              "endTimeUnixNano": "1789653753145000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/customers/{id}"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "503"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "database unavailable"
+              }
+            },
+            {
+              "traceId": "KqgDsuQMl6JJDXVKRl/p3g==",
+              "spanId": "d0H9FCjCCL4=",
+              "parentSpanId": "0Km6amQSzgc=",
+              "name": "SELECT customer",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751030000000",
+              "endTimeUnixNano": "1789653753032000000",
+              "attributes": [
+                {
+                  "key": "db.system",
+                  "value": {
+                    "stringValue": "postgresql"
+                  }
+                },
+                {
+                  "key": "db.name",
+                  "value": {
+                    "stringValue": "customers"
+                  }
+                },
+                {
+                  "key": "db.operation",
+                  "value": {
+                    "stringValue": "SELECT"
+                  }
+                },
+                {
+                  "key": "db.statement",
+                  "value": {
+                    "stringValue": "SELECT id, name, tier FROM customers WHERE id = $1"
+                  }
+                },
+                {
+                  "key": "net.peer.name",
+                  "value": {
+                    "stringValue": "customers-db"
+                  }
+                },
+                {
+                  "key": "net.peer.port",
+                  "value": {
+                    "intValue": "5432"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "connection timeout after 2000ms"
+              },
+              "events": [
+                {
+                  "timeUnixNano": "1789653753031000000",
+                  "name": "exception",
+                  "attributes": [
+                    {
+                      "key": "exception.type",
+                      "value": {
+                        "stringValue": "ConnectionTimeoutError"
+                      }
+                    },
+                    {
+                      "key": "exception.message",
+                      "value": {
+                        "stringValue": "PostgreSQL connection timeout after 2000ms"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

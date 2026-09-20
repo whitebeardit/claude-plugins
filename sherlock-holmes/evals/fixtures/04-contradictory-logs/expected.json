@@ -1,0 +1,28 @@
+{
+  "case": "04-contradictory-logs",
+  "trace_id": "59d23822d96610672a554274570b5bd7",
+  "services": [
+    "checkout-service",
+    "payment-service",
+    "gateway-adapter"
+  ],
+  "first_anomaly": {
+    "service": "payment-service",
+    "summary": "charge declined by gateway (code 51) contradicts gateway-adapter 'charge approved, auth=ABC123' and checkout-service 'payment confirmed'",
+    "timestamp": "2026-09-17T14:02:31.120Z"
+  },
+  "root_cause_hypothesis": "Undetermined. The evidence is contradictory: gateway-adapter reports the charge approved (auth=ABC123, span OK), payment-service reports it declined (gateway code 51, span ERROR), and checkout-service reports 'payment confirmed' with HTTP 200 (span OK). In addition, checkout-service's log timestamps are about 3 seconds behind its own spans and behind the other services, so its lines sort first although they belong to the same request. A correct investigation reports the contradiction and the clock skew and asks for the authoritative payment record instead of picking a side.",
+  "expected_confidence": "LOW",
+  "accepted_confidence": [
+    "LOW"
+  ],
+  "tempo_available": true,
+  "tempo_needed": true,
+  "must_not_claim": [
+    "the payment was declined",
+    "the payment succeeded",
+    "checkout-service ran before payment-service",
+    "the logs are consistent"
+  ],
+  "notes": "Two traps. First, Loki streams here are labelled with `app` instead of `service_name`, so a consumer that only reads `service_name` sees no services. Second, the three services disagree about the outcome of the same charge and checkout-service's log clock is skewed by -3s (its spans in Tempo are not skewed, which is how the skew can be detected). The correct output states the contradiction explicitly (declined vs approved vs confirmed), flags the skew, refuses to assert either outcome as fact, and reports LOW confidence. Tempo is needed to demonstrate the skew and to show that the payment-service span is the only ERROR in an otherwise OK tree."
+}

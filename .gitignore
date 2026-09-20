@@ -1,0 +1,10 @@
+# Eval run output (reports, transcripts, kept sandboxes)
+**/evals/results/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Editors / OS
+.DS_Store
+*.swp

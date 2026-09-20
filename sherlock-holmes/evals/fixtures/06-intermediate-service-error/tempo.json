@@ -1,0 +1,390 @@
+{
+  "batches": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "api"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "hMhhS5tt9dNWX72z8hdOlQ==",
+              "spanId": "b39c2zLIVE4=",
+              "name": "GET /quotes/5",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751000000000",
+              "endTimeUnixNano": "1789653751095000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/quotes/{id}"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "500"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "gateway-bff returned 500"
+              }
+            },
+            {
+              "traceId": "hMhhS5tt9dNWX72z8hdOlQ==",
+              "spanId": "zFZVQHS5uhM=",
+              "parentSpanId": "b39c2zLIVE4=",
+              "name": "GET gateway-bff/quotes/5",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751003000000",
+              "endTimeUnixNano": "1789653751090000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "peer.service",
+                  "value": {
+                    "stringValue": "gateway-bff"
+                  }
+                },
+                {
+                  "key": "http.url",
+                  "value": {
+                    "stringValue": "http://gateway-bff:8080/quotes/5"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "500"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "HTTP 500"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "gateway-bff"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "hMhhS5tt9dNWX72z8hdOlQ==",
+              "spanId": "NbL6ubusv14=",
+              "parentSpanId": "zFZVQHS5uhM=",
+              "name": "GET /quotes/5",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751005000000",
+              "endTimeUnixNano": "1789653751088000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/quotes/{id}"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "500"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "upstream pricing-service 500"
+              }
+            },
+            {
+              "traceId": "hMhhS5tt9dNWX72z8hdOlQ==",
+              "spanId": "mqgcwtVEcf8=",
+              "parentSpanId": "NbL6ubusv14=",
+              "name": "GET pricing-service/price",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751008000000",
+              "endTimeUnixNano": "1789653751084000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "peer.service",
+                  "value": {
+                    "stringValue": "pricing-service"
+                  }
+                },
+                {
+                  "key": "http.url",
+                  "value": {
+                    "stringValue": "http://pricing-service:8080/price?quote=5"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "500"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "HTTP 500"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "pricing-service"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "hMhhS5tt9dNWX72z8hdOlQ==",
+              "spanId": "v7jz0yKOb0E=",
+              "parentSpanId": "mqgcwtVEcf8=",
+              "name": "GET /price",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751010000000",
+              "endTimeUnixNano": "1789653751082000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/price"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "500"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "java.lang.NullPointerException"
+              },
+              "events": [
+                {
+                  "timeUnixNano": "1789653751078000000",
+                  "name": "exception",
+                  "attributes": [
+                    {
+                      "key": "exception.type",
+                      "value": {
+                        "stringValue": "java.lang.NullPointerException"
+                      }
+                    },
+                    {
+                      "key": "exception.message",
+                      "value": {
+                        "stringValue": "Cannot invoke \"Discount.rate()\" because \"discount\" is null"
+                      }
+                    },
+                    {
+                      "key": "exception.stacktrace",
+                      "value": {
+                        "stringValue": "java.lang.NullPointerException: Cannot invoke \"Discount.rate()\" because \"discount\" is null\n\tat com.synthetic.pricing.PriceCalculator.compute(PriceCalculator.java:88)\n\tat com.synthetic.pricing.PriceController.getPrice(PriceController.java:41)"
+                      }
+                    },
+                    {
+                      "key": "exception.escaped",
+                      "value": {
+                        "boolValue": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "traceId": "hMhhS5tt9dNWX72z8hdOlQ==",
+              "spanId": "gfzQsKGlKKs=",
+              "parentSpanId": "v7jz0yKOb0E=",
+              "name": "GET tax-service/tax/rate",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751015000000",
+              "endTimeUnixNano": "1789653751030000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "peer.service",
+                  "value": {
+                    "stringValue": "tax-service"
+                  }
+                },
+                {
+                  "key": "http.url",
+                  "value": {
+                    "stringValue": "http://tax-service:8080/tax/rate?region=synthetic"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "200"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_OK"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "tax-service"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "hMhhS5tt9dNWX72z8hdOlQ==",
+              "spanId": "5WJj1bwFJ38=",
+              "parentSpanId": "gfzQsKGlKKs=",
+              "name": "GET /tax/rate",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751017000000",
+              "endTimeUnixNano": "1789653751029000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/tax/rate"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "200"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_OK"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

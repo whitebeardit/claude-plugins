@@ -1,0 +1,336 @@
+{
+  "batches": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "api"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "yUleaJZ/cfzCEsj22AWXsQ==",
+              "spanId": "4rgjKZge5gI=",
+              "name": "GET /reports/9",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751000000000",
+              "endTimeUnixNano": "1789653752260000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/reports/{id}"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "500"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "report-service returned 500"
+              }
+            },
+            {
+              "traceId": "yUleaJZ/cfzCEsj22AWXsQ==",
+              "spanId": "NkLAWgDTD4Y=",
+              "parentSpanId": "4rgjKZge5gI=",
+              "name": "GET report-service/reports/9",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751004000000",
+              "endTimeUnixNano": "1789653752252000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "peer.service",
+                  "value": {
+                    "stringValue": "report-service"
+                  }
+                },
+                {
+                  "key": "http.url",
+                  "value": {
+                    "stringValue": "http://report-service:8080/reports/9"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "500"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "HTTP 500"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "report-service"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "yUleaJZ/cfzCEsj22AWXsQ==",
+              "spanId": "QyLCQjEqdOU=",
+              "parentSpanId": "NkLAWgDTD4Y=",
+              "name": "GET /reports/9",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751007000000",
+              "endTimeUnixNano": "1789653752248000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/reports/{id}"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "500"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "request failed"
+              }
+            },
+            {
+              "traceId": "yUleaJZ/cfzCEsj22AWXsQ==",
+              "spanId": "xSJ57s1A/jY=",
+              "parentSpanId": "QyLCQjEqdOU=",
+              "name": "GET cache-service/cache/reports/9",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751010000000",
+              "endTimeUnixNano": "1789653751028000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "peer.service",
+                  "value": {
+                    "stringValue": "cache-service"
+                  }
+                },
+                {
+                  "key": "http.url",
+                  "value": {
+                    "stringValue": "http://cache-service:8080/cache/reports/9"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "200"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_OK"
+              }
+            },
+            {
+              "traceId": "yUleaJZ/cfzCEsj22AWXsQ==",
+              "spanId": "AD5n7oT8xig=",
+              "parentSpanId": "QyLCQjEqdOU=",
+              "name": "S3 GetObject",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751040000000",
+              "endTimeUnixNano": "1789653752240000000",
+              "attributes": [
+                {
+                  "key": "rpc.system",
+                  "value": {
+                    "stringValue": "aws-api"
+                  }
+                },
+                {
+                  "key": "rpc.service",
+                  "value": {
+                    "stringValue": "S3"
+                  }
+                },
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "GetObject"
+                  }
+                },
+                {
+                  "key": "aws.s3.bucket",
+                  "value": {
+                    "stringValue": "synthetic-reports-bucket"
+                  }
+                },
+                {
+                  "key": "aws.s3.key",
+                  "value": {
+                    "stringValue": "reports/9.pdf"
+                  }
+                },
+                {
+                  "key": "aws.region",
+                  "value": {
+                    "stringValue": "eu-central-1"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "AccessDenied: User is not authorized to perform s3:GetObject"
+              },
+              "events": [
+                {
+                  "timeUnixNano": "1789653752239000000",
+                  "name": "exception",
+                  "attributes": [
+                    {
+                      "key": "exception.type",
+                      "value": {
+                        "stringValue": "AccessDenied"
+                      }
+                    },
+                    {
+                      "key": "exception.message",
+                      "value": {
+                        "stringValue": "User is not authorized to perform s3:GetObject"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "cache-service"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "yUleaJZ/cfzCEsj22AWXsQ==",
+              "spanId": "BnuFuu6E/GM=",
+              "parentSpanId": "xSJ57s1A/jY=",
+              "name": "GET /cache/reports/9",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751012000000",
+              "endTimeUnixNano": "1789653751027000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "GET"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/cache/reports/{id}"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "200"
+                  }
+                },
+                {
+                  "key": "cache.hit",
+                  "value": {
+                    "boolValue": true
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_OK"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

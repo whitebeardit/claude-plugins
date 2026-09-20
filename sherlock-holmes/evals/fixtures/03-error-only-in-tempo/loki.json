@@ -1,0 +1,82 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "streams",
+    "result": [
+      {
+        "stream": {
+          "service_name": "api",
+          "level": "error",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653752258000000",
+            "{\"level\":\"error\",\"msg\":\"HTTP 500\",\"trace_id\":\"c9495e68967f71fcc212c8f6d80597b1\",\"span_id\":\"e2b82329981ee602\",\"service\":\"api\",\"http.status_code\":500,\"duration_ms\":1258}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "api",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751001000000",
+            "{\"level\":\"info\",\"msg\":\"GET /reports/9\",\"trace_id\":\"c9495e68967f71fcc212c8f6d80597b1\",\"span_id\":\"e2b82329981ee602\",\"service\":\"api\",\"http.method\":\"GET\",\"http.route\":\"/reports/{id}\"}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "cache-service",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751013000000",
+            "{\"level\":\"info\",\"msg\":\"GET /cache/reports/9\",\"trace_id\":\"c9495e68967f71fcc212c8f6d80597b1\",\"span_id\":\"067b85baee84fc63\",\"service\":\"cache-service\",\"http.method\":\"GET\"}"
+          ],
+          [
+            "1789653751026000000",
+            "{\"level\":\"info\",\"msg\":\"HTTP 200\",\"trace_id\":\"c9495e68967f71fcc212c8f6d80597b1\",\"span_id\":\"067b85baee84fc63\",\"service\":\"cache-service\",\"http.status_code\":200,\"duration_ms\":14,\"cache.hit\":true}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "report-service",
+          "level": "error",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653752245000000",
+            "{\"level\":\"error\",\"msg\":\"request failed\",\"trace_id\":\"c9495e68967f71fcc212c8f6d80597b1\",\"span_id\":\"4322c242312a74e5\",\"service\":\"report-service\",\"http.status_code\":500}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "report-service",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751008000000",
+            "{\"level\":\"info\",\"msg\":\"GET /reports/9\",\"trace_id\":\"c9495e68967f71fcc212c8f6d80597b1\",\"span_id\":\"4322c242312a74e5\",\"service\":\"report-service\",\"http.method\":\"GET\"}"
+          ],
+          [
+            "1789653751029000000",
+            "{\"level\":\"info\",\"msg\":\"cache metadata found for report 9, fetching object\",\"trace_id\":\"c9495e68967f71fcc212c8f6d80597b1\",\"span_id\":\"4322c242312a74e5\",\"service\":\"report-service\",\"report_id\":9}"
+          ]
+        ]
+      }
+    ],
+    "stats": {}
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "streams",
+    "result": [
+      {
+        "stream": {
+          "service_name": "inventory-service",
+          "level": "error",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653752015000000",
+            "{\"level\":\"error\",\"msg\":\"DB connection timeout (attempt 1/3)\",\"trace_id\":\"df34d418bee785c2a1d46b9539d0ccc2\",\"span_id\":\"932e69a1bdcebcc8\",\"service\":\"inventory-service\",\"attempt\":1,\"duration_ms\":1000,\"db.system\":\"postgresql\"}"
+          ],
+          [
+            "1789653753216000000",
+            "{\"level\":\"error\",\"msg\":\"DB connection timeout (attempt 2/3)\",\"trace_id\":\"df34d418bee785c2a1d46b9539d0ccc2\",\"span_id\":\"932e69a1bdcebcc8\",\"service\":\"inventory-service\",\"attempt\":2,\"duration_ms\":1000,\"db.system\":\"postgresql\"}"
+          ],
+          [
+            "1789653754417000000",
+            "{\"level\":\"error\",\"msg\":\"DB connection timeout (attempt 3/3)\",\"trace_id\":\"df34d418bee785c2a1d46b9539d0ccc2\",\"span_id\":\"932e69a1bdcebcc8\",\"service\":\"inventory-service\",\"attempt\":3,\"duration_ms\":1000,\"db.system\":\"postgresql\"}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "inventory-service",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751015000000",
+            "{\"level\":\"info\",\"msg\":\"POST /reserve\",\"trace_id\":\"df34d418bee785c2a1d46b9539d0ccc2\",\"span_id\":\"e651a9c3933c4d7d\",\"service\":\"inventory-service\",\"http.method\":\"POST\"}"
+          ],
+          [
+            "1789653752016000000",
+            "{\"level\":\"info\",\"msg\":\"retrying in 200ms\",\"trace_id\":\"df34d418bee785c2a1d46b9539d0ccc2\",\"span_id\":\"e651a9c3933c4d7d\",\"service\":\"inventory-service\",\"attempt\":1,\"backoff_ms\":200}"
+          ],
+          [
+            "1789653753217000000",
+            "{\"level\":\"info\",\"msg\":\"retrying in 200ms\",\"trace_id\":\"df34d418bee785c2a1d46b9539d0ccc2\",\"span_id\":\"e651a9c3933c4d7d\",\"service\":\"inventory-service\",\"attempt\":2,\"backoff_ms\":200}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "inventory-service",
+          "level": "warn",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653754418000000",
+            "{\"level\":\"warn\",\"msg\":\"giving up, returning 503\",\"trace_id\":\"df34d418bee785c2a1d46b9539d0ccc2\",\"span_id\":\"e651a9c3933c4d7d\",\"service\":\"inventory-service\",\"http.status_code\":503,\"attempts\":3}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "order-service",
+          "level": "error",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653754425000000",
+            "{\"level\":\"error\",\"msg\":\"inventory-service returned 503, order rejected\",\"trace_id\":\"df34d418bee785c2a1d46b9539d0ccc2\",\"span_id\":\"51988866dc892bb7\",\"service\":\"order-service\",\"upstream\":\"inventory-service\",\"upstream.status_code\":503}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "order-service",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751000000000",
+            "{\"level\":\"info\",\"msg\":\"POST /orders\",\"trace_id\":\"df34d418bee785c2a1d46b9539d0ccc2\",\"span_id\":\"51988866dc892bb7\",\"service\":\"order-service\",\"http.method\":\"POST\",\"http.route\":\"/orders\"}"
+          ],
+          [
+            "1789653751012000000",
+            "{\"level\":\"info\",\"msg\":\"calling inventory-service POST /reserve\",\"trace_id\":\"df34d418bee785c2a1d46b9539d0ccc2\",\"span_id\":\"5bbdc91bafe6aa6c\",\"service\":\"order-service\",\"http.method\":\"POST\",\"upstream\":\"inventory-service\"}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "order-service",
+          "level": "warn",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653754427000000",
+            "{\"level\":\"warn\",\"msg\":\"HTTP 503\",\"trace_id\":\"df34d418bee785c2a1d46b9539d0ccc2\",\"span_id\":\"51988866dc892bb7\",\"service\":\"order-service\",\"http.status_code\":503,\"duration_ms\":3427}"
+          ]
+        ]
+      }
+    ],
+    "stats": {}
+  }
+}

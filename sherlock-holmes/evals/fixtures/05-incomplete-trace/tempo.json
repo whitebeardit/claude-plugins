@@ -1,0 +1,238 @@
+{
+  "batches": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "api"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "PTEhO+vQZcnBnoBjigcbNg==",
+              "spanId": "KF5tIAKF7+4=",
+              "name": "POST /orders",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751000000000",
+              "endTimeUnixNano": "1789653781000000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "POST"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/orders"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "504"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "deadline exceeded"
+              }
+            },
+            {
+              "traceId": "PTEhO+vQZcnBnoBjigcbNg==",
+              "spanId": "xi6tClxUkp8=",
+              "parentSpanId": "KF5tIAKF7+4=",
+              "name": "POST order-service/orders",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751003000000",
+              "endTimeUnixNano": "1789653780999000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "POST"
+                  }
+                },
+                {
+                  "key": "peer.service",
+                  "value": {
+                    "stringValue": "order-service"
+                  }
+                },
+                {
+                  "key": "http.url",
+                  "value": {
+                    "stringValue": "http://order-service:8080/orders"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "context deadline exceeded"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "order-service"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "PTEhO+vQZcnBnoBjigcbNg==",
+              "spanId": "jFiKFEjzRpc=",
+              "parentSpanId": "xi6tClxUkp8=",
+              "name": "POST /orders",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751006000000",
+              "endTimeUnixNano": "1789653780992000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "POST"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/orders"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "202"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_OK"
+              }
+            },
+            {
+              "traceId": "PTEhO+vQZcnBnoBjigcbNg==",
+              "spanId": "2RoYh5e36Qk=",
+              "parentSpanId": "jFiKFEjzRpc=",
+              "name": "INSERT order",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751010000000",
+              "endTimeUnixNano": "1789653751032000000",
+              "attributes": [
+                {
+                  "key": "db.system",
+                  "value": {
+                    "stringValue": "postgresql"
+                  }
+                },
+                {
+                  "key": "db.name",
+                  "value": {
+                    "stringValue": "orders"
+                  }
+                },
+                {
+                  "key": "db.operation",
+                  "value": {
+                    "stringValue": "INSERT"
+                  }
+                },
+                {
+                  "key": "db.statement",
+                  "value": {
+                    "stringValue": "INSERT INTO orders (id, status) VALUES ($1, $2)"
+                  }
+                },
+                {
+                  "key": "net.peer.name",
+                  "value": {
+                    "stringValue": "orders-db"
+                  }
+                },
+                {
+                  "key": "net.peer.port",
+                  "value": {
+                    "intValue": "5432"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_OK"
+              }
+            },
+            {
+              "traceId": "PTEhO+vQZcnBnoBjigcbNg==",
+              "spanId": "5hd9luPtK3E=",
+              "parentSpanId": "jFiKFEjzRpc=",
+              "name": "POST fulfillment-service/fulfil",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751040000000",
+              "endTimeUnixNano": "1789653780840000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "POST"
+                  }
+                },
+                {
+                  "key": "peer.service",
+                  "value": {
+                    "stringValue": "fulfillment-service"
+                  }
+                },
+                {
+                  "key": "http.url",
+                  "value": {
+                    "stringValue": "http://fulfillment-service:8080/fulfil"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "context deadline exceeded"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

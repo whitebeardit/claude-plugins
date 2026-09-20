@@ -1,0 +1,29 @@
+{
+  "case": "06-intermediate-service-error",
+  "trace_id": "84c8614b9b6df5d3565fbdb3f2174e95",
+  "services": [
+    "api",
+    "gateway-bff",
+    "pricing-service",
+    "tax-service"
+  ],
+  "first_anomaly": {
+    "service": "pricing-service",
+    "summary": "NullPointerException at PriceCalculator.java:88",
+    "timestamp": "2026-09-17T14:02:31.079Z"
+  },
+  "root_cause_hypothesis": "pricing-service threw java.lang.NullPointerException in PriceCalculator.compute (PriceCalculator.java:88) after tax-service had already answered GET /tax/rate with 200 OK in 12ms; pricing-service returned HTTP 500, which gateway-bff and then api propagated as HTTP 500.",
+  "expected_confidence": "HIGH",
+  "accepted_confidence": [
+    "HIGH"
+  ],
+  "tempo_available": true,
+  "tempo_needed": false,
+  "must_not_claim": [
+    "tax-service failed",
+    "tax-service is the root cause",
+    "gateway-bff is the root cause",
+    "api is the root cause"
+  ],
+  "notes": "The failure originates in the middle of the chain. tax-service, the deepest downstream, is healthy (200 OK, 12ms, span OK) and its healthy response precedes the exception in pricing-service. A correct investigation attributes the first anomaly to pricing-service, states that the downstream tax-service is not the cause, and describes the propagation direction correctly: pricing-service 500 -> gateway-bff 500 -> api 500 (upstream toward the caller). Logs alone suffice because the exception and stack are logged; Tempo confirms the same with the exception event."
+}

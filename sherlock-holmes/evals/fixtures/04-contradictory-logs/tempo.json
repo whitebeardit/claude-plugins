@@ -1,0 +1,266 @@
+{
+  "batches": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "checkout-service"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "WdI4ItlmEGcqVUJ0Vwtb1w==",
+              "spanId": "R83KD7+lKWc=",
+              "name": "POST /checkout",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751000000000",
+              "endTimeUnixNano": "1789653751150000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "POST"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/checkout"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "200"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_OK"
+              }
+            },
+            {
+              "traceId": "WdI4ItlmEGcqVUJ0Vwtb1w==",
+              "spanId": "3SyspmkLk+g=",
+              "parentSpanId": "R83KD7+lKWc=",
+              "name": "POST payment-service/charge",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751005000000",
+              "endTimeUnixNano": "1789653751135000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "POST"
+                  }
+                },
+                {
+                  "key": "peer.service",
+                  "value": {
+                    "stringValue": "payment-service"
+                  }
+                },
+                {
+                  "key": "http.url",
+                  "value": {
+                    "stringValue": "http://payment-service:8080/charge"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "payment-service"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "WdI4ItlmEGcqVUJ0Vwtb1w==",
+              "spanId": "UQadr/hSaH4=",
+              "parentSpanId": "3SyspmkLk+g=",
+              "name": "POST /charge",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751008000000",
+              "endTimeUnixNano": "1789653751130000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "POST"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/charge"
+                  }
+                },
+                {
+                  "key": "payment.gateway_code",
+                  "value": {
+                    "stringValue": "51"
+                  }
+                },
+                {
+                  "key": "payment.outcome",
+                  "value": {
+                    "stringValue": "declined"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": "charge declined by gateway (code 51)"
+              }
+            },
+            {
+              "traceId": "WdI4ItlmEGcqVUJ0Vwtb1w==",
+              "spanId": "exn+ehKVWqM=",
+              "parentSpanId": "UQadr/hSaH4=",
+              "name": "POST gateway-adapter/authorize",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1789653751015000000",
+              "endTimeUnixNano": "1789653751110000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "POST"
+                  }
+                },
+                {
+                  "key": "peer.service",
+                  "value": {
+                    "stringValue": "gateway-adapter"
+                  }
+                },
+                {
+                  "key": "http.url",
+                  "value": {
+                    "stringValue": "http://gateway-adapter:8080/authorize"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "200"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_OK"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "gateway-adapter"
+            }
+          },
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "prod"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "otel-instrumentation"
+          },
+          "spans": [
+            {
+              "traceId": "WdI4ItlmEGcqVUJ0Vwtb1w==",
+              "spanId": "dH/WDqr/YWE=",
+              "parentSpanId": "exn+ehKVWqM=",
+              "name": "POST /authorize",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": "1789653751020000000",
+              "endTimeUnixNano": "1789653751105000000",
+              "attributes": [
+                {
+                  "key": "http.method",
+                  "value": {
+                    "stringValue": "POST"
+                  }
+                },
+                {
+                  "key": "http.route",
+                  "value": {
+                    "stringValue": "/authorize"
+                  }
+                },
+                {
+                  "key": "http.status_code",
+                  "value": {
+                    "intValue": "200"
+                  }
+                },
+                {
+                  "key": "payment.auth_code",
+                  "value": {
+                    "stringValue": "ABC123"
+                  }
+                },
+                {
+                  "key": "payment.outcome",
+                  "value": {
+                    "stringValue": "approved"
+                  }
+                }
+              ],
+              "status": {
+                "code": "STATUS_CODE_OK"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

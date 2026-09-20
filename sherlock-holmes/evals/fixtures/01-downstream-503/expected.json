@@ -1,0 +1,28 @@
+{
+  "case": "01-downstream-503",
+  "trace_id": "2aa803b2e40c97a2490d754a465fe9de",
+  "services": [
+    "api",
+    "payment-service",
+    "customer-service"
+  ],
+  "first_anomaly": {
+    "service": "customer-service",
+    "summary": "PostgreSQL connection timeout after 2000ms while serving GET /customers/42",
+    "timestamp": "2026-09-17T14:02:33.031Z"
+  },
+  "root_cause_hypothesis": "customer-service could not obtain a PostgreSQL connection within 2000ms (db CLIENT span 'SELECT customer' ended in error); it answered 503, payment-service propagated the failure as 502 and api surfaced HTTP 500 to the caller.",
+  "expected_confidence": "HIGH",
+  "accepted_confidence": [
+    "HIGH"
+  ],
+  "tempo_available": true,
+  "tempo_needed": false,
+  "must_not_claim": [
+    "connection pool exhaustion",
+    "API gateway is the cause",
+    "payment-service is the root cause",
+    "api is the root cause"
+  ],
+  "notes": "A correct investigation walks the chain api -> payment-service -> customer-service -> PostgreSQL and identifies the earliest error as the PostgreSQL connection timeout inside customer-service (2000ms db span in error). Every later error (customer 503, payment 502, api 500) is a consequence, not a cause. Logs alone are sufficient; Tempo only confirms the timing. The data says 'connection timeout', not 'pool exhaustion': the investigation must not upgrade the symptom into a mechanism the evidence does not show."
+}

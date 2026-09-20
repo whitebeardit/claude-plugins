@@ -1,0 +1,29 @@
+{
+  "name": "whitebeard-plugins",
+  "displayName": "Whitebeard plugins",
+  "description": "Claude Code plugins built and maintained by Whitebeard.",
+  "owner": {
+    "name": "Whitebeard",
+    "email": "code@whitebeard.dev"
+  },
+  "plugins": [
+    {
+      "name": "sherlock-holmes",
+      "displayName": "Sherlock Holmes",
+      "source": "./sherlock-holmes",
+      "description": "Evidence-first incident investigation by trace ID using Grafana Loki and Tempo. Read-only.",
+      "version": "0.1.0",
+      "category": "monitoring",
+      "license": "MIT",
+      "keywords": [
+        "observability",
+        "loki",
+        "tempo",
+        "grafana",
+        "incident",
+        "trace",
+        "sre"
+      ]
+    }
+  ]
+}

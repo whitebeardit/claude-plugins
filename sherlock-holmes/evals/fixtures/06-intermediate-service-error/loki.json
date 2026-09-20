@@ -1,0 +1,130 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "streams",
+    "result": [
+      {
+        "stream": {
+          "service_name": "api",
+          "level": "error",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751093000000",
+            "{\"level\":\"error\",\"msg\":\"HTTP 500\",\"trace_id\":\"84c8614b9b6df5d3565fbdb3f2174e95\",\"span_id\":\"6f7f5cdb32c8544e\",\"service\":\"api\",\"http.status_code\":500,\"duration_ms\":93}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "api",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751001000000",
+            "{\"level\":\"info\",\"msg\":\"GET /quotes/5\",\"trace_id\":\"84c8614b9b6df5d3565fbdb3f2174e95\",\"span_id\":\"6f7f5cdb32c8544e\",\"service\":\"api\",\"http.method\":\"GET\",\"http.route\":\"/quotes/{id}\"}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "gateway-bff",
+          "level": "error",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751086000000",
+            "{\"level\":\"error\",\"msg\":\"upstream pricing-service 500\",\"trace_id\":\"84c8614b9b6df5d3565fbdb3f2174e95\",\"span_id\":\"35b2fab9bbacbf5e\",\"service\":\"gateway-bff\",\"upstream\":\"pricing-service\",\"upstream.status_code\":500}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "gateway-bff",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751006000000",
+            "{\"level\":\"info\",\"msg\":\"GET /quotes/5\",\"trace_id\":\"84c8614b9b6df5d3565fbdb3f2174e95\",\"span_id\":\"35b2fab9bbacbf5e\",\"service\":\"gateway-bff\",\"http.method\":\"GET\"}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "gateway-bff",
+          "level": "warn",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751087000000",
+            "{\"level\":\"warn\",\"msg\":\"HTTP 500\",\"trace_id\":\"84c8614b9b6df5d3565fbdb3f2174e95\",\"span_id\":\"35b2fab9bbacbf5e\",\"service\":\"gateway-bff\",\"http.status_code\":500,\"duration_ms\":82}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "pricing-service",
+          "level": "error",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751079000000",
+            "{\"level\":\"error\",\"msg\":\"NullPointerException at PriceCalculator.java:88\",\"trace_id\":\"84c8614b9b6df5d3565fbdb3f2174e95\",\"span_id\":\"bfb8f3d3228e6f41\",\"service\":\"pricing-service\",\"exception\":\"java.lang.NullPointerException\",\"stack\":\"java.lang.NullPointerException: Cannot invoke \\\"Discount.rate()\\\" because \\\"discount\\\" is null\\n\\tat com.synthetic.pricing.PriceCalculator.compute(PriceCalculator.java:88)\\n\\tat com.synthetic.pricing.PriceController.getPrice(PriceController.java:41)\"}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "pricing-service",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751011000000",
+            "{\"level\":\"info\",\"msg\":\"GET /price\",\"trace_id\":\"84c8614b9b6df5d3565fbdb3f2174e95\",\"span_id\":\"bfb8f3d3228e6f41\",\"service\":\"pricing-service\",\"http.method\":\"GET\",\"quote_id\":5}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "pricing-service",
+          "level": "warn",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751081000000",
+            "{\"level\":\"warn\",\"msg\":\"HTTP 500\",\"trace_id\":\"84c8614b9b6df5d3565fbdb3f2174e95\",\"span_id\":\"bfb8f3d3228e6f41\",\"service\":\"pricing-service\",\"http.status_code\":500,\"duration_ms\":71}"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "service_name": "tax-service",
+          "level": "info",
+          "env": "prod"
+        },
+        "values": [
+          [
+            "1789653751018000000",
+            "{\"level\":\"info\",\"msg\":\"GET /tax/rate\",\"trace_id\":\"84c8614b9b6df5d3565fbdb3f2174e95\",\"span_id\":\"e56263d5bc05277f\",\"service\":\"tax-service\",\"http.method\":\"GET\"}"
+          ],
+          [
+            "1789653751029000000",
+            "{\"level\":\"info\",\"msg\":\"GET /tax/rate 200 OK 12ms\",\"trace_id\":\"84c8614b9b6df5d3565fbdb3f2174e95\",\"span_id\":\"e56263d5bc05277f\",\"service\":\"tax-service\",\"http.status_code\":200,\"duration_ms\":12}"
+          ]
+        ]
+      }
+    ],
+    "stats": {}
+  }
+}
