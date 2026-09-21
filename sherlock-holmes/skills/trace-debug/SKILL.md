@@ -17,10 +17,23 @@ The collector is deterministic and read-only. It collects facts; you interpret t
 
 ## 1. Collect
 
-Run the collector once with the prompt cut:
+This installation was configured with:
+
+- Grafana URL: `${user_config.grafana_url}`
+- Loki datasource UID: `${user_config.grafana_loki_uid}`
+- Tempo datasource UID: `${user_config.grafana_tempo_uid}`
+- Loki selector: `${user_config.loki_selector}`
+- Trace-id filter mode: `${user_config.loki_trace_filter}`
+- Trace-id field: `${user_config.loki_trace_field}`
+
+Pass each of those that holds a real value as the matching flag: `--grafana-url`,
+`--grafana-loki-uid`, `--grafana-tempo-uid`, `--selector`, `--trace-filter`, `--trace-field`. Skip
+any that is blank or still shows a `${...}` placeholder, which means the install dialog was left
+empty there; the collector falls back to the environment for those, and ignores such a value if you
+pass it anyway. Never put a credential on the command line.
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/trace-debug/scripts/collect-trace.py" --trace-id <trace-id> --format prompt [flags]
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/trace-debug/scripts/collect-trace.py" --trace-id <trace-id> --format prompt [config flags] [flags]
 ```
 
 Run it exactly in that shape: a single `python3 ... collect-trace.py ...` command, no `cd`, no `&&`, no pipes, no redirection. Only that shape is pre-approved; anything else will be blocked and you must not work around the block.
@@ -30,6 +43,13 @@ What the cut gives you: sources status, the time window and what bounded it, ser
 Then:
 
 - **"no access configured" or an HTTP 401/403/400 error** for a source: run `python3 "${CLAUDE_PLUGIN_ROOT}/skills/trace-debug/scripts/collect-trace.py" doctor`, report the configuration problem with the variables the user must set, and stop. Do not guess at evidence you could not collect.
+  The credential is the one thing the install dialog cannot carry: plugin config reaches hooks and
+  MCP servers, not a Bash command, and secrets are never substituted into skill text. So on a 401,
+  or when `doctor` reports auth as `none`, tell the user to export `GRAFANA_TOKEN` (or
+  `GRAFANA_USERNAME` plus `GRAFANA_PASSWORD`, or `LOKI_TOKEN`/`TEMPO_TOKEN` for direct access) in
+  the shell that launches Claude Code, and to restart it so the variable is inherited. When only
+  `GRAFANA_URL` and a token are set, `doctor` lists the datasource UIDs, so point the user at it
+  rather than asking them to hunt through the Grafana UI.
 - **Window bounded by `now` and zero log lines**: the trace was not in Tempo and the incident may be older than the default lookback. If the user mentioned a time, re-run once with `--around <time>`. Otherwise ask for the approximate time in the report's next steps.
 - **Need detail beyond the cut** (a specific span's attributes, the lines the cut omitted, a full stack trace): read the full JSON with `Read` using offset/limit on the parts you need. Do not paste the whole file into your reasoning.
 - **Never re-run the collector more than three times** for one investigation. If it keeps failing, report the failure.

@@ -99,7 +99,26 @@ correct answer there is partly "the evidence cannot say".
 
 ## Configure
 
-Credentials live in environment variables, never in the plugin. Two access modes, auto-detected per source (direct wins when both are set):
+Installing the plugin opens a dialog asking where your Grafana is, the Loki and Tempo datasource
+UIDs, and which streams to search. Fill in what you know and leave the rest blank; a blank field is
+ignored rather than applied, and you can edit them later in `/config`. Don't know the UIDs? Leave
+them empty, finish the install, set `GRAFANA_URL` and a token, and ask Claude to run the
+trace-debug doctor — it lists every Loki and Tempo datasource with its UID.
+
+**The credential is deliberately not in that dialog.** Plugin config is delivered to hooks and MCP
+servers, not to the Bash command that runs the collector, and secrets are never substituted into
+skill text, so a token entered there could not reach the collector anyway. It also keeps
+credentials off command lines and out of process listings. Export it in the shell that launches
+Claude Code, and restart Claude Code so it is inherited:
+
+```bash
+export GRAFANA_TOKEN=glsa_...        # or GRAFANA_SERVICE_ACCOUNT_TOKEN
+```
+
+Everything the dialog collects can equally be set as an environment variable, which is what you
+want for CI or a shared machine. The dialog wins over the environment when both are set.
+
+Two access modes, auto-detected per source (direct wins when both are set):
 
 **Through Grafana** (one token, two datasource UIDs; works with Grafana Cloud and self-hosted):
 

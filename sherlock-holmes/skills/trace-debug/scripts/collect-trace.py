@@ -824,6 +824,9 @@ def render_prompt(doc: dict, budget_lines: int, budget_spans: int, out_path) -> 
 
 def doctor(args) -> int:
     report = {"collector_version": VERSION, "fixture": None, "loki": {}, "tempo": {}, "config": {}}
+    ignored = apply_config_flags(args)
+    if ignored:
+        report["ignored_empty_flags"] = ignored
     env = os.environ
     report["config"] = {
         "LOKI_SELECTOR": env.get("LOKI_SELECTOR") or "(missing: required for Loki)",
@@ -912,13 +915,55 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--fixture", help="directory with loki.json / tempo.json instead of HTTP (also TRACE_DEBUG_FIXTURE_DIR)")
     p.add_argument("--dump-raw", help="directory where raw API responses are saved (to build fixtures)")
     p.add_argument("--timeout", type=int, default=int(os.environ.get("HTTP_TIMEOUT", "20")))
+    cfg = p.add_argument_group(
+        "configuration",
+        "Each overrides the matching environment variable. Meant to be filled from the plugin's "
+        "install dialog; an empty value, or one still holding an unsubstituted ${...} placeholder, "
+        "is ignored rather than used. Credentials are NOT accepted here and must come from the "
+        "environment, so they never appear in a command line or a process list.")
+    cfg.add_argument("--grafana-url", metavar="URL", help="overrides GRAFANA_URL")
+    cfg.add_argument("--grafana-loki-uid", metavar="UID", help="overrides GRAFANA_LOKI_UID")
+    cfg.add_argument("--grafana-tempo-uid", metavar="UID", help="overrides GRAFANA_TEMPO_UID")
+    cfg.add_argument("--selector", metavar="SEL", help="overrides LOKI_SELECTOR")
+    cfg.add_argument("--trace-filter", choices=["substring", "metadata", "json"], help="overrides LOKI_TRACE_FILTER")
+    cfg.add_argument("--trace-field", metavar="FIELD", help="overrides LOKI_TRACE_FIELD")
     return p
+
+
+CONFIG_FLAGS = {
+    "grafana_url": "GRAFANA_URL",
+    "grafana_loki_uid": "GRAFANA_LOKI_UID",
+    "grafana_tempo_uid": "GRAFANA_TEMPO_UID",
+    "selector": "LOKI_SELECTOR",
+    "trace_filter": "LOKI_TRACE_FILTER",
+    "trace_field": "LOKI_TRACE_FIELD",
+}
+
+
+def apply_config_flags(args) -> list:
+    """Fold the configuration flags into the environment the rest of the script reads.
+
+    A value that is empty, or that still contains an unsubstituted ${...} placeholder, is
+    discarded: a plugin install dialog left blank must not turn into a literal setting.
+    """
+    ignored = []
+    for attr, var in CONFIG_FLAGS.items():
+        value = getattr(args, attr, None)
+        if value is None:
+            continue
+        value = value.strip()
+        if not value or "${" in value:
+            ignored.append(var)
+            continue
+        os.environ[var] = value
+    return ignored
 
 
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "doctor":
         return doctor(args)
+    apply_config_flags(args)
     if not args.trace_id:
         print("error: --trace-id is required", file=sys.stderr)
         return 2

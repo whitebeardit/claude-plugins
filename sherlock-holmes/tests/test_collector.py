@@ -253,5 +253,59 @@ class EndToEndFixtureTests(unittest.TestCase):
             os.environ.update(env)
 
 
+class ConfigFlagTests(unittest.TestCase):
+    """The config flags are filled from the plugin's install dialog, which may be blank."""
+
+    def setUp(self):
+        self.saved = {k: os.environ.get(k) for k in ct.CONFIG_FLAGS.values()}
+        for k in ct.CONFIG_FLAGS.values():
+            os.environ.pop(k, None)
+
+    def tearDown(self):
+        for k, v in self.saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+    def parse(self, argv):
+        return ct.build_parser().parse_args(["--trace-id", TID] + argv)
+
+    def test_flag_sets_the_environment(self):
+        ignored = ct.apply_config_flags(self.parse(["--selector", '{ns="prod"}', "--grafana-url", "https://g"]))
+        self.assertEqual(ignored, [])
+        self.assertEqual(os.environ["LOKI_SELECTOR"], '{ns="prod"}')
+        self.assertEqual(os.environ["GRAFANA_URL"], "https://g")
+
+    def test_flag_overrides_the_environment(self):
+        os.environ["LOKI_SELECTOR"] = '{ns="from-env"}'
+        ct.apply_config_flags(self.parse(["--selector", '{ns="from-flag"}']))
+        self.assertEqual(os.environ["LOKI_SELECTOR"], '{ns="from-flag"}')
+
+    def test_blank_dialog_field_is_ignored_not_applied(self):
+        os.environ["LOKI_SELECTOR"] = '{ns="from-env"}'
+        ignored = ct.apply_config_flags(self.parse(["--selector", "   ", "--grafana-url", ""]))
+        self.assertEqual(os.environ["LOKI_SELECTOR"], '{ns="from-env"}')
+        self.assertNotIn("GRAFANA_URL", os.environ)
+        self.assertEqual(sorted(ignored), ["GRAFANA_URL", "LOKI_SELECTOR"])
+
+    def test_unsubstituted_placeholder_is_ignored(self):
+        os.environ["GRAFANA_LOKI_UID"] = "real-uid"
+        ignored = ct.apply_config_flags(self.parse(["--grafana-loki-uid", "${user_config.grafana_loki_uid}"]))
+        self.assertEqual(os.environ["GRAFANA_LOKI_UID"], "real-uid")
+        self.assertEqual(ignored, ["GRAFANA_LOKI_UID"])
+
+    def test_absent_flag_leaves_environment_alone(self):
+        os.environ["LOKI_SELECTOR"] = '{ns="from-env"}'
+        self.assertEqual(ct.apply_config_flags(self.parse([])), [])
+        self.assertEqual(os.environ["LOKI_SELECTOR"], '{ns="from-env"}')
+
+    def test_no_credential_flag_exists(self):
+        """Secrets must come from the environment, never a command line."""
+        help_text = ct.build_parser().format_help().lower()
+        for forbidden in ("--grafana-token", "--token", "--password", "--loki-token"):
+            self.assertNotIn(forbidden, help_text)
+
+
 if __name__ == "__main__":
     unittest.main()
