@@ -836,6 +836,28 @@ def doctor(args) -> int:
     if fixture_dir:
         fd = Path(fixture_dir)
         report["fixture"] = {"dir": str(fd), "loki.json": (fd / "loki.json").exists(), "tempo.json": (fd / "tempo.json").exists()}
+    # When Grafana is the route, list its datasources: a wrong or missing UID is the
+    # most common first-run mistake, and the answer is one call away.
+    grafana = env.get("GRAFANA_URL")
+    if grafana and not fixture_dir:
+        headers = auth_headers(env.get("GRAFANA_TOKEN") or env.get("GRAFANA_SERVICE_ACCOUNT_TOKEN"),
+                               env.get("GRAFANA_USERNAME"), env.get("GRAFANA_PASSWORD"))
+        try:
+            status, body = http_get(grafana.rstrip("/") + "/api/datasources", headers, args.timeout)
+            if status == 200:
+                found = []
+                for ds in json.loads(body):
+                    if ds.get("type") in ("loki", "tempo"):
+                        found.append({"uid": ds.get("uid"), "type": ds.get("type"), "name": ds.get("name")})
+                report["grafana_datasources"] = found or "none of type loki/tempo"
+                if found:
+                    report["hint"] = ("set GRAFANA_LOKI_UID / GRAFANA_TEMPO_UID to the uid values above "
+                                      "that match your environment")
+            else:
+                report["grafana_datasources"] = describe_http_failure(status, body)
+        except CollectError as exc:
+            report["grafana_datasources"] = str(exc)
+
     for source in ("loki", "tempo"):
         ep = resolve_endpoint(source)
         entry = {"access": ep["mode"], "auth": "configured" if ep.get("auth") else "none", "check": None}

@@ -132,6 +132,51 @@ Tuning, all optional:
 | `TEMPO_API` | `v1` | `v1` = `/api/traces/<id>` (every Tempo version). `v2` = `/api/v2/traces/<id>`. |
 | `HTTP_TIMEOUT` | `20` | Seconds per request. |
 
+### First run against a real stack
+
+Work up in three steps, checking after each. Each one tells you what the next needs.
+
+**1. Point it at Grafana and find your datasources.** Create a service account token in Grafana
+(*Administration → Users and access → Service accounts*, Viewer role is enough — the plugin only
+reads), then:
+
+```bash
+export GRAFANA_URL=https://your-stack.grafana.net    # or your self-hosted Grafana
+export GRAFANA_TOKEN=glsa_...
+python3 .../collect-trace.py doctor
+```
+
+With the URL and token alone, `doctor` lists every Loki and Tempo datasource it can see, with their
+UIDs. You don't have to hunt for them in the UI.
+
+**2. Set the UIDs and find your log labels.**
+
+```bash
+export GRAFANA_LOKI_UID=<uid from step 1>
+export GRAFANA_TEMPO_UID=<uid from step 1>
+```
+
+`doctor` now returns `check: ok` for both sources and a sample of the label names your Loki actually
+uses. That sample is what you build the selector from — don't copy `{env="prod"}` from this README,
+because your labels are almost certainly different.
+
+**3. Set the selector, then confirm with a trace you already know.**
+
+```bash
+export LOKI_SELECTOR='{namespace="your-namespace"}'   # from the labels in step 2
+```
+
+Take a trace id from a request you understand and investigate it. If Tempo returns the trace but
+Loki returns zero lines, the selector or the trace-id field is wrong, not the plugin: check
+`LOKI_TRACE_FILTER` (`substring` works with any log format; use `metadata` for Loki 3 structured
+metadata, or `json` for JSON logs) and `LOKI_TRACE_FIELD` (default `trace_id`; some stacks use
+`traceId` or `traceID`).
+
+Two things worth knowing before you blame the tool. Not every trace reaches Tempo: a caller that
+sends `traceparent … -00` is never sampled, so a 404 there can be correct behaviour rather than a
+retention problem. And some stacks do not ship application logs to Loki at all, in which case the
+plugin will reconstruct the span tree and tell you, honestly, that it has no log narrative.
+
 Check the wiring before the first investigation by asking Claude:
 
 > Run the trace-debug doctor.
