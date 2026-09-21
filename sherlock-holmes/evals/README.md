@@ -28,3 +28,35 @@ the default judge is a small model and the rubrics there ask it to accept split 
 and labelled hypotheses.
 
 Regenerate fixtures with `python3 evals/fixtures/generate.py` (deterministic, synthetic data only).
+
+## What the plugin contributes
+
+Measured on 2026-09-21 with the default two-arm run (each case also runs with no
+plugin loaded), judge model `sonnet`, one run per arm:
+
+| | with | without | Δ |
+| --- | --- | --- | --- |
+| Mean score over the six cases | 1.00 | 0.50 | **+0.50** |
+
+Two graders are excluded from scoring because the baseline cannot pass them by
+construction, not because it reasons worse: `skill-fired` (Claude Code excludes
+`tool_used: Skill` automatically) and `collector-ran`, marked `arm: with-only`
+since `collect-trace.py` does not exist without the plugin. Counting the latter
+would have reported +0.56.
+
+The interesting part is where the difference actually comes from. Given the same
+recorded Loki and Tempo responses, a plain session already identifies the first
+anomalous event correctly in four of six cases. What it does not do is say how
+confident it is, separate what it observed from what it inferred, or hold the
+line when the evidence is contradictory.
+
+| Grader | without | with |
+| --- | --- | --- |
+| `first-anomaly` — right origin, no fabricated cause | 4/6 | 6/6 |
+| `discipline` — no unproven cause stated as fact | 1/6 | 6/6 |
+| `confidence-stated` — states HIGH/MEDIUM/LOW with a reason | 0/6 | 6/6 |
+| `labels-used` — FACT separated from INFERENCE/HYPOTHESIS | 0/6 | 6/6 |
+
+So the plugin's contribution is less "finds the answer" and more "reports it
+honestly": it turns a usually-correct guess into a diagnosis that states its own
+confidence and its own gaps.
