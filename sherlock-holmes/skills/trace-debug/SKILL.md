@@ -9,7 +9,9 @@ allowed-tools: Bash(python3 *collect-trace.py*) Read
 
 # Trace debug
 
-Investigate the trace given in `$ARGUMENTS`. The first token is the trace id (16 or 32 hex characters, or a `00-<trace>-<span>-<flags>` traceparent). Any other tokens are flags to pass to the collector unchanged, for example `--around 2026-09-17T14:02:00Z`, `--lookback 2h`, or `--fixture ./fixtures` when the user points you at recorded responses instead of live Loki/Tempo.
+Investigate the trace given in `$ARGUMENTS`. The first token is the trace id (16 or 32 hex characters, or a `00-<trace>-<span>-<flags>` traceparent). Any other tokens are flags to pass to the collector unchanged, for example `--around 2026-09-17T14:02:00Z`, `--lookback 2h`, or `--fixture <dir>` when the user points you at recorded responses instead of live Loki/Tempo.
+
+**Bundled fixtures.** This plugin ships recorded Loki and Tempo responses for six scenarios, so it can be tried with no backend configured. They live at `${CLAUDE_PLUGIN_ROOT}/evals/fixtures/<case>/`, where `<case>` is one of `01-downstream-503`, `02-db-timeout-retries`, `03-error-only-in-tempo`, `04-contradictory-logs`, `05-incomplete-trace`, `06-intermediate-service-error`. When the user names one of those, or otherwise asks for the bundled, sample or demo fixtures, pass that absolute path to `--fixture` — resolve it under `${CLAUDE_PLUGIN_ROOT}`, never relative to the working directory, which is usually somewhere else entirely. Say in the report that the evidence came from recorded fixtures, not a live backend.
 
 The collector is deterministic and read-only. It collects facts; you interpret them.
 

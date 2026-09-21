@@ -60,16 +60,42 @@ Why Tempo first? A trace ID carries no timestamp. Looking a trace up by ID in Te
 
 ## Install
 
-Requirements: Claude Code, Python 3.8+, network access to Loki and Tempo (directly or through Grafana).
-
-From this repository's local marketplace:
+Requirements: Claude Code and Python 3.8+. A Loki and a Tempo are needed to investigate real
+traces, but not to try the plugin out, which is covered below.
 
 ```
-/plugin marketplace add /path/to/CLAUDE_PLUGINS
+/plugin marketplace add whitebeardit/claude-plugins
 /plugin install sherlock-holmes@whitebeard-plugins
 ```
 
-Or for one session: `claude --plugin-dir /path/to/CLAUDE_PLUGINS/sherlock-holmes`.
+If the install summary says `Run /reload-plugins to activate.`, do that.
+
+To hack on the plugin instead of installing it, clone the repository and load it for one session
+with `claude --plugin-dir ./claude-plugins/sherlock-holmes`.
+
+## Try it without a Loki or a Tempo
+
+The plugin ships the recorded Loki and Tempo responses for six failure scenarios, so you can see a
+full investigation before wiring it to anything. Ask Claude, in a session where the plugin is
+installed:
+
+> Investigate trace `2aa803b2e40c97a2490d754a465fe9de` using the bundled fixtures for
+> `01-downstream-503`.
+
+The skill knows where those fixtures live inside the plugin, so you don't need to know where it was
+installed or which directory you are in. The six scenarios, each a different shape of failure:
+
+| Scenario | Trace ID | What it exercises |
+| --- | --- | --- |
+| `01-downstream-503` | `2aa803b2e40c97a2490d754a465fe9de` | A database timeout four services deep, surfacing as a 500 at the edge |
+| `02-db-timeout-retries` | `df34d418bee785c2a1d46b9539d0ccc2` | Retries of one failure, and no trace in Tempo at all |
+| `03-error-only-in-tempo` | `c9495e68967f71fcc212c8f6d80597b1` | Logs say only "request failed"; the cause is visible solely in the spans |
+| `04-contradictory-logs` | `59d23822d96610672a554274570b5bd7` | Two services disagree about the same outcome, and a clock is skewed |
+| `05-incomplete-trace` | `3d31213bebd065c9c19e80638a071b36` | A service with no logs and no spans at all |
+| `06-intermediate-service-error` | `84c8614b9b6df5d3565fbdb3f2174e95` | The failure is in the middle of the chain; the downstream is healthy |
+
+All fixture data is synthetic. Cases 04 and 05 are the interesting ones to judge it on, because the
+correct answer there is partly "the evidence cannot say".
 
 ## Configure
 
@@ -106,13 +132,18 @@ Tuning, all optional:
 | `TEMPO_API` | `v1` | `v1` = `/api/traces/<id>` (every Tempo version). `v2` = `/api/v2/traces/<id>`. |
 | `HTTP_TIMEOUT` | `20` | Seconds per request. |
 
-Check the wiring before the first investigation:
+Check the wiring before the first investigation by asking Claude:
 
-```bash
-python3 skills/trace-debug/scripts/collect-trace.py doctor
-```
+> Run the trace-debug doctor.
 
-It reports the access mode per source, whether credentials are present, a labels sample from Loki and an echo from Tempo. It never prints a token.
+It reports the access mode per source, whether credentials are present, a labels sample from Loki
+and an echo from Tempo. It never prints a token. Set the variables in the shell that launches
+Claude Code, since the collector reads them from the environment it inherits.
+
+To run it yourself against a clone, it is `python3 skills/trace-debug/scripts/collect-trace.py
+doctor` from the plugin directory. An installed copy lives under
+`~/.claude/plugins/cache/whitebeard-plugins/sherlock-holmes/<version>/`, but asking Claude avoids
+having to find it.
 
 ## Use
 
