@@ -91,6 +91,12 @@ Tags are per plugin, in the form `sherlock-holmes-v0.2.0`, so one plugin releasi
 
 Behavioural verification is not part of the release job: the eval suite has already run locally, before the commits were pushed.
 
+### Submitting to the community marketplace
+
+Anthropic runs two public marketplaces. `claude-plugins-official` is curated at Anthropic's discretion and has no application process. `claude-community` is where third-party submissions land after review, and is the one to submit to, through [the claude.ai form](https://claude.ai/admin-settings/directory/submissions/plugins/new) (Team or Enterprise organisations with directory management access) or [the Console form](https://platform.claude.com/plugins/submit) (individual authors).
+
+Run `claude plugin validate ./sherlock-holmes --strict` before submitting; the review pipeline runs the same check alongside automated safety screening. Approved plugins are pinned to a commit SHA in the community catalog, and their CI bumps the pin as new commits land, so no tag or SHA has to be supplied by hand.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

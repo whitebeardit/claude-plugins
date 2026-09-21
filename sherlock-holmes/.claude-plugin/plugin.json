@@ -7,6 +7,17 @@
     "name": "Whitebeard",
     "email": "code@whitebeard.dev"
   },
+  "homepage": "https://github.com/whitebeardit/claude-plugins/tree/main/sherlock-holmes",
+  "repository": "https://github.com/whitebeardit/claude-plugins",
   "license": "MIT",
-  "keywords": ["observability", "loki", "tempo", "grafana", "incident", "trace", "debugging", "sre"]
+  "keywords": [
+    "observability",
+    "loki",
+    "tempo",
+    "grafana",
+    "incident",
+    "trace",
+    "debugging",
+    "sre"
+  ]
 }
