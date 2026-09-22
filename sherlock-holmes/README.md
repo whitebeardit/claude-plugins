@@ -58,17 +58,70 @@ Three files do the work:
 
 Why Tempo first? A trace ID carries no timestamp. Looking a trace up by ID in Tempo is indexed and cheap, and it returns the exact start and end, so the Loki query can be tight instead of scanning hours of every stream. The agent still *reads* logs first; only the collection order is Tempo-first. When Tempo does not have the trace (unsampled, unexported, expired), the collector says so and falls back to a lookback window, or to `--around` / `--start` `--end` if you know roughly when it happened.
 
-## Install
+## Quick setup
 
-Requirements: Claude Code and Python 3.8+. A Loki and a Tempo are needed to investigate real
-traces, but not to try the plugin out, which is covered below.
+Six steps from nothing to a real investigation. Steps 1 and 2 need no Loki and no Tempo.
+Requirements: Claude Code and Python 3.8+.
+
+**1 — Install.** In Claude Code:
 
 ```
 /plugin marketplace add whitebeardit/claude-plugins
 /plugin install sherlock-holmes@whitebeard-plugins
 ```
 
-If the install summary says `Run /reload-plugins to activate.`, do that.
+If the install summary says `Run /reload-plugins to activate.`, do that. The install dialog asks
+for your Grafana URL, two datasource UIDs and a stream selector — leave them blank for now: steps 4
+and 5 are how you find those values, and `/config` edits them later.
+
+**2 — Watch a full investigation, offline.** Ask Claude:
+
+> Investigate trace `2aa803b2e40c97a2490d754a465fe9de` using the bundled fixtures for
+> `01-downstream-503`.
+
+Recorded Loki and Tempo responses ship with the plugin, so this works before anything is wired up.
+[Five more scenarios](#try-it-without-a-loki-or-a-tempo) are bundled.
+
+**3 — Point it at your Grafana.** Create a service account token (*Administration → Users and
+access → Service accounts*; Viewer is enough, the plugin only reads). Export both variables in the
+shell that launches Claude Code, then restart Claude Code so the collector inherits them — [the
+token deliberately is not in the install dialog](#configure):
+
+```bash
+export GRAFANA_URL=https://your-stack.grafana.net    # or your self-hosted Grafana
+export GRAFANA_TOKEN=glsa_...
+```
+
+**4 — Ask the doctor for your datasource UIDs.** Ask Claude:
+
+> Run the trace-debug doctor.
+
+With only the URL and the token set, it lists every Loki and Tempo datasource it can see, with
+their UIDs. You don't have to hunt for them in the UI.
+
+**5 — Set the UIDs, then build the selector.**
+
+```bash
+export GRAFANA_LOKI_UID=<uid from step 4>
+export GRAFANA_TEMPO_UID=<uid from step 4>
+```
+
+Ask for the doctor again. It now returns `check: ok` for both sources, plus a sample of the label
+names your Loki actually uses. Build the selector from that sample — not from this README, your
+labels are almost certainly different:
+
+```bash
+export LOKI_SELECTOR='{namespace="your-namespace"}'
+```
+
+**6 — Investigate a trace you already understand,** so you can judge the answer:
+
+```
+/sherlock-holmes:trace-debug <trace-id>
+```
+
+No Grafana in front of your Loki and Tempo? [Direct URLs work too](#configure). Trace found but
+zero log lines? [Usually the selector or the trace-id field](#when-the-first-run-doesnt-line-up).
 
 To hack on the plugin instead of installing it, clone the repository and load it for one session
 with `claude --plugin-dir ./claude-plugins/sherlock-holmes`.
@@ -151,63 +204,25 @@ Tuning, all optional:
 | `TEMPO_API` | `v1` | `v1` = `/api/traces/<id>` (every Tempo version). `v2` = `/api/v2/traces/<id>`. |
 | `HTTP_TIMEOUT` | `20` | Seconds per request. |
 
-### First run against a real stack
+### When the first run doesn't line up
 
-Work up in three steps, checking after each. Each one tells you what the next needs.
-
-**1. Point it at Grafana and find your datasources.** Create a service account token in Grafana
-(*Administration → Users and access → Service accounts*, Viewer role is enough — the plugin only
-reads), then:
-
-```bash
-export GRAFANA_URL=https://your-stack.grafana.net    # or your self-hosted Grafana
-export GRAFANA_TOKEN=glsa_...
-python3 .../collect-trace.py doctor
-```
-
-With the URL and token alone, `doctor` lists every Loki and Tempo datasource it can see, with their
-UIDs. You don't have to hunt for them in the UI.
-
-**2. Set the UIDs and find your log labels.**
-
-```bash
-export GRAFANA_LOKI_UID=<uid from step 1>
-export GRAFANA_TEMPO_UID=<uid from step 1>
-```
-
-`doctor` now returns `check: ok` for both sources and a sample of the label names your Loki actually
-uses. That sample is what you build the selector from — don't copy `{env="prod"}` from this README,
-because your labels are almost certainly different.
-
-**3. Set the selector, then confirm with a trace you already know.**
-
-```bash
-export LOKI_SELECTOR='{namespace="your-namespace"}'   # from the labels in step 2
-```
-
-Take a trace id from a request you understand and investigate it. If Tempo returns the trace but
-Loki returns zero lines, the selector or the trace-id field is wrong, not the plugin: check
-`LOKI_TRACE_FILTER` (`substring` works with any log format; use `metadata` for Loki 3 structured
-metadata, or `json` for JSON logs) and `LOKI_TRACE_FIELD` (default `trace_id`; some stacks use
-`traceId` or `traceID`).
+If Tempo returns the trace but Loki returns zero lines, the selector or the trace-id field is
+wrong, not the plugin: check `LOKI_TRACE_FILTER` (`substring` works with any log format; use
+`metadata` for Loki 3 structured metadata, or `json` for JSON logs) and `LOKI_TRACE_FIELD` (default
+`trace_id`; some stacks use `traceId` or `traceID`).
 
 Two things worth knowing before you blame the tool. Not every trace reaches Tempo: a caller that
 sends `traceparent … -00` is never sampled, so a 404 there can be correct behaviour rather than a
 retention problem. And some stacks do not ship application logs to Loki at all, in which case the
 plugin will reconstruct the span tree and tell you, honestly, that it has no log narrative.
 
-Check the wiring before the first investigation by asking Claude:
-
-> Run the trace-debug doctor.
-
-It reports the access mode per source, whether credentials are present, a labels sample from Loki
-and an echo from Tempo. It never prints a token. Set the variables in the shell that launches
-Claude Code, since the collector reads them from the environment it inherits.
-
-To run it yourself against a clone, it is `python3 skills/trace-debug/scripts/collect-trace.py
-doctor` from the plugin directory. An installed copy lives under
-`~/.claude/plugins/cache/whitebeard-plugins/sherlock-holmes/<version>/`, but asking Claude avoids
-having to find it.
+The doctor is the fastest way to see what the collector actually sees: it reports the access mode
+per source, whether credentials are present, a labels sample from Loki and an echo from Tempo. It
+never prints a token. Ask Claude to *run the trace-debug doctor*, or run it yourself against a
+clone with `python3 skills/trace-debug/scripts/collect-trace.py doctor` from the plugin directory.
+An installed copy lives under `~/.claude/plugins/cache/whitebeard-plugins/sherlock-holmes/<version>/`,
+but asking Claude avoids having to find it. Remember the collector reads credentials from the
+environment it inherits, so set them in the shell that launches Claude Code.
 
 ## Use
 
