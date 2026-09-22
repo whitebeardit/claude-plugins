@@ -1,7 +1,7 @@
 {
   "name": "sherlock-holmes",
   "displayName": "Sherlock Holmes",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Evidence-first incident investigation by trace ID using Grafana Loki logs and Grafana Tempo traces. Read-only: it reconstructs the timeline, finds the first anomalous event, separates cause from consequence and states its confidence and gaps.",
   "author": {
     "name": "Whitebeard",
