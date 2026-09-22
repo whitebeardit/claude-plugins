@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.2.0...sherlock-holmes-v0.2.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* **sherlock-holmes:** drop userConfig options picker for CLI compat ([#3](https://github.com/whitebeardit/claude-plugins/issues/3)) ([01c37d6](https://github.com/whitebeardit/claude-plugins/commit/01c37d6626795020f19812ca1f9df8582e4196e1))
+
 ## [0.2.0](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.1.0...sherlock-holmes-v0.2.0) (2026-09-22)
 
 
