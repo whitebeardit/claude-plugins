@@ -44,12 +44,7 @@
     "loki_trace_filter": {
       "type": "string",
       "title": "How logs carry the trace id",
-      "description": "substring searches the raw line and works with any format. metadata suits Loki 3 structured metadata. json parses JSON logs first.",
-      "options": [
-        "substring",
-        "metadata",
-        "json"
-      ],
+      "description": "One of: substring (searches the raw line, works with any format), metadata (Loki 3 structured metadata), json (parses JSON logs first).",
       "default": "substring"
     },
     "loki_trace_field": {
