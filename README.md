@@ -9,6 +9,10 @@ A [Claude Code](https://claude.com/claude-code) plugin marketplace.
 
 ## Plugins
 
+| Plugin | What it does | Docs |
+| --- | --- | --- |
+| [**sherlock-holmes**](sherlock-holmes/) | Incident investigation by trace ID, over Grafana Loki and Tempo. Read-only. | [README](sherlock-holmes/README.md) · [Quick setup](sherlock-holmes/README.md#quick-setup) · [Design decisions](sherlock-holmes/docs/design-decisions.md) |
+
 ### Sherlock Holmes
 
 Evidence-first incident investigation by trace ID, using **Grafana Loki** logs and **Grafana Tempo** traces. Give it a trace ID; it rebuilds the timeline across services, finds the first anomalous event, separates cause from consequence, and tells you how confident it is and what the evidence cannot show.
@@ -21,7 +25,7 @@ It is read-only by construction: the collector only issues HTTP GET, the agent h
 
 The rule it is built around: **never prefer a convincing story to incomplete evidence.** "There is not enough evidence to determine the root cause" is a valid answer, and the agent is built to give it.
 
-See [`sherlock-holmes/README.md`](sherlock-holmes/README.md) for setup, configuration and the full report format, and [`sherlock-holmes/docs/design-decisions.md`](sherlock-holmes/docs/design-decisions.md) for why it is built the way it is.
+Its [README](sherlock-holmes/README.md) carries the six-step [quick setup](sherlock-holmes/README.md#quick-setup), the full configuration reference and the report format.
 
 ## Repository layout
 
