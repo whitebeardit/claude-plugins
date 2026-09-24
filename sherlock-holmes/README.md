@@ -32,7 +32,7 @@ The core rule: **never prefer a convincing story to incomplete evidence.** "Ther
 
 Install to finished report, recorded end to end:
 
-<video src="VIDEO_URL_PLACEHOLDER" controls width="700"></video>
+<video src="https://github.com/user-attachments/assets/2d406d94-b4ab-4938-a90a-016d639c8e3a" controls width="700"></video>
 
 ## How it works
 
