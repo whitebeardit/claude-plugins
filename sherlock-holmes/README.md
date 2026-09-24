@@ -28,6 +28,12 @@ It is **read-only**. It never modifies production, dashboards, alerts or code.
 
 The core rule: **never prefer a convincing story to incomplete evidence.** "There is not enough evidence to determine the root cause" is a valid answer, and the agent is built to give it.
 
+## See it in action
+
+Install to finished report, recorded end to end:
+
+<video src="https://github.com/user-attachments/assets/2d406d94-b4ab-4938-a90a-016d639c8e3a" controls width="700"></video>
+
 ## How it works
 
 ```
