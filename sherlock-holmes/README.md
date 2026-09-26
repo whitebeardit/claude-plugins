@@ -91,6 +91,13 @@ Without it the investigation is exactly the same, minus the file. `Run the trace
 reports `diagram: available` or the reason it is not. The archify update check is disabled for
 every call: the plugin still talks only to Loki and Tempo.
 
+To draw a trace without investigating it - to look at it, share it or export it, with no diagnosis -
+use the lighter skill, which runs no agent:
+
+```
+/sherlock-holmes:trace-diagram 4bf92f3577b34da6a3ce929d0e0e4736
+```
+
 ## Quick setup
 
 Six steps from nothing to a real investigation. Steps 1 and 2 need no Loki and no Tempo.
