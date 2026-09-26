@@ -155,3 +155,50 @@ obtainable the whole time by simply asking a judge to explain itself.
 judge model: three items in "Next checks", nothing actionable after the list, no bundled second
 check, `discipline` PASS 3/3, case score 1.00 with all eight graders green. The prediction was
 made from an identified mechanism rather than a correlation, and it held.
+
+## D14. archify renders the trace; it never authors the diagram
+
+v0.3.0 adds an interactive sequence diagram of the span tree, built with
+[archify](https://github.com/tt-a1i/archify) (MIT). archify is designed as a skill for an agent to
+*author* diagrams from prose, with layout judgement. That path is deliberately not used here: the
+agent's tool surface stays `Bash(collector)`, `Bash(diagram script)` and `Read`, and the diagram is
+produced by `trace-diagram.py`, a deterministic stdlib script that reads the collector's full JSON
+and calls the archify CLI (`deliver`, which validates and renders). D3 and D4 are unchanged - the
+collector collects, a script draws, the agent interprets - and "never fabricate" holds by
+construction: the model chooses neither topology nor labels.
+
+## D15. The diagram is the FACT layer, and only that
+
+Participants are the services seen in spans plus the peers named in CLIENT/PRODUCER/CONSUMER span
+attributes; messages are outbound spans (call and return, with recorded start/end and status);
+activations are SERVER spans; notes are the warn/error log lines the collector already joined to a
+span, quoted. Cards are labelled `FACT ·` or `UNKNOWN ·`; the "first span to fail" card carries the
+collector's `span_first_to_fail` signal and the view's note says being first is a fact and being the
+cause is the investigator's call. The root span's caller is not in the trace, so it gets an
+activation and no invented message. No causal chain is drawn; that stays in the report as INFERENCE.
+Without Tempo there is no diagram - logs alone do not give a sequence - and the report says so.
+
+## D16. Optional dependency, found at runtime, never installed, never on the network
+
+archify needs Node >= 18 and is installed by the user (`npx skills add tt-a1i/archify -g`) or pointed
+at with `ARCHIFY_BIN`. The script looks in the usual skill directories and on PATH; `doctor` reports
+`diagram: available|unavailable` with the reason, and that line is never part of `doctor`'s exit
+status. Not vendored: the useful runtime is ~2 MB but archify ships on a `-dev` channel that moves
+fast, and tracking it inside a plugin would be a second product. The `archify` package on npm is a
+different project. The CLI's update check is disabled for every call
+(`ARCHIFY_UPDATE_CHECK_DISABLED=1`): the collector's "GET only, Loki/Tempo only" promise extends to
+the renderer. A failed render tries `--quality standard` once, then gives up with the reason; the
+script exits 0 for every diagram outcome because a diagram must never fail an investigation. The HTML
+is made to be shared, so labels are built from an allowlist of attributes (operation, method, route,
+status code, peer name, db.system) and pass the collector's redaction; `db.statement`, URLs with ids
+and headers never reach it.
+
+## D17. Packaging: one version, two entry points
+
+Any change ships as a new plugin version (release-please; a `feat:` is a minor bump, and
+`plugin.json` is never edited by hand). The diagram lives inside `trace-debug` - it is an attachment
+of the report, born from the same JSON, in the same fork and the same pre-approval - and, separately,
+a light `trace-diagram` skill with no agent and no fork draws a trace on request without paying for
+an investigation. Both use the same two scripts. The CI validates the six golden specifications
+against a pinned archify commit, so a schema change upstream fails a pull request instead of a user's
+first run.

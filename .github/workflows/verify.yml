@@ -124,6 +124,23 @@ jobs:
             echo "::endgroup::"
           done
 
+      - name: Diagram goldens validate against a pinned archify
+        env:
+          ARCHIFY_UPDATE_CHECK_DISABLED: "1"
+          ARCHIFY_COMMIT: 9e35d2b0b39b155553ba9fcfe0b4f2a5198dd993
+        run: |
+          set -e
+          goldens=$(ls */tests/golden/*.sequence.json 2>/dev/null || true)
+          if [ -z "$goldens" ]; then echo "no diagram goldens"; exit 0; fi
+          dir="$RUNNER_TEMP/archify"
+          git init -q "$dir"
+          git -C "$dir" fetch -q --depth 1 https://github.com/tt-a1i/archify.git "$ARCHIFY_COMMIT"
+          git -C "$dir" checkout -q FETCH_HEAD
+          node --version
+          for g in $goldens; do
+            node "$dir/archify/bin/archify.mjs" validate sequence "$g"
+          done
+
       - name: Fixtures are reproducible
         run: |
           rc=0

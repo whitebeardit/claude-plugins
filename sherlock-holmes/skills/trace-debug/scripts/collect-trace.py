@@ -31,6 +31,7 @@ Exit codes: 0 collected (at least one source usable), 1 every source failed,
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import base64
 import binascii
 import json
@@ -887,6 +888,15 @@ def doctor(args) -> int:
             except CollectError as exc:
                 entry["check"] = str(exc)
         report[source] = entry
+    # Optional diagram renderer (trace-diagram.py + archify). Informative only: never part of `ok`,
+    # because an investigation without a diagram is still a complete investigation.
+    try:
+        spec = importlib.util.spec_from_file_location("trace_diagram", Path(__file__).resolve().with_name("trace-diagram.py"))
+        td = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(td)
+        report["diagram"] = td.archify_status()
+    except Exception as exc:  # noqa: BLE001 - a broken optional helper must not break doctor
+        report["diagram"] = {"available": False, "reason": f"trace-diagram.py unavailable: {exc}"}
     print(json.dumps(report, indent=2))
     ok = all(report[s]["check"] in ("ok", "skipped (fixture mode)") for s in ("loki", "tempo"))
     return 0 if ok else 1

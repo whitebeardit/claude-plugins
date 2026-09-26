@@ -1,0 +1,138 @@
+{
+ "activations": [
+  {
+   "from": 140,
+   "participant": "api",
+   "to": 410,
+   "type": "backend"
+  },
+  {
+   "from": 164,
+   "participant": "order-service",
+   "to": 396,
+   "type": "backend"
+  }
+ ],
+ "cards": [
+  {
+   "dot": "cyan",
+   "items": [
+    "root span: api POST /orders",
+    "5 spans · 3 with error status · 30000 ms",
+    "window 14:02:31.000 → 14:03:01.000 (as recorded)"
+   ],
+   "title": "FACT · trace"
+  },
+  {
+   "dot": "orange",
+   "items": [
+    "order-service · POST fulfillment-service/fulfil",
+    "14:02:31.040 → 14:03:00.840 · 29800 ms",
+    "context deadline exceeded"
+   ],
+   "title": "FACT · first span to fail"
+  }
+ ],
+ "diagram_type": "sequence",
+ "messages": [
+  {
+   "from": "api",
+   "label": "POST order-service/orders  14:02:31.003",
+   "to": "order-service",
+   "variant": "emphasis",
+   "y": 170
+  },
+  {
+   "from": "order-service",
+   "label": "INSERT order  14:02:31.010",
+   "to": "orders-db",
+   "variant": "default",
+   "y": 214
+  },
+  {
+   "from": "orders-db",
+   "label": "OK  14:02:31.032  22 ms",
+   "to": "order-service",
+   "variant": "return",
+   "y": 258
+  },
+  {
+   "from": "order-service",
+   "label": "POST fulfillment-service/fulfil  14:02:31.040",
+   "to": "fulfillment-service",
+   "variant": "emphasis",
+   "y": 302
+  },
+  {
+   "from": "fulfillment-service",
+   "label": "ERROR  14:03:00.840  29800 ms  context deadline exceeded",
+   "to": "order-service",
+   "variant": "return",
+   "y": 346
+  },
+  {
+   "from": "order-service",
+   "label": "202  14:03:00.999  29996 ms",
+   "to": "api",
+   "variant": "return",
+   "y": 390
+  }
+ ],
+ "meta": {
+  "animation": "trace",
+  "column_fit": "spread",
+  "quality_profile": "showcase",
+  "subtitle": "trace 3d31213bebd065c9c19e80638a071b36 · evidence only: spans as recorded, no causal claim",
+  "title": "Trace 3d31213bebd065c9… · api POST /orders",
+  "viewBox": [
+   900,
+   690
+  ],
+  "views": [
+   {
+    "focus": [
+     "api",
+     "order-service",
+     "orders-db",
+     "fulfillment-service"
+    ],
+    "id": "request-path",
+    "label": "Request path",
+    "note": "Calls as recorded in spans. The caller of the root span is not in the trace."
+   },
+   {
+    "focus": [
+     "order-service",
+     "orders-db"
+    ],
+    "id": "first-span-to-fail",
+    "label": "First span to fail",
+    "note": "Earliest span with error status. Being first is a fact; being the cause is the investigator's call."
+   }
+  ]
+ },
+ "participants": [
+  {
+   "id": "api",
+   "label": "api",
+   "type": "backend"
+  },
+  {
+   "id": "order-service",
+   "label": "order-service",
+   "type": "backend"
+  },
+  {
+   "id": "orders-db",
+   "label": "orders-db",
+   "sublabel": "postgresql",
+   "type": "database"
+  },
+  {
+   "id": "fulfillment-service",
+   "label": "fulfillment-service",
+   "type": "backend"
+  }
+ ],
+ "schema_version": 1
+}
