@@ -239,6 +239,47 @@ class RealTraceShapesTest(unittest.TestCase):
         self.assertIn("1 nested outbound span(s) folded", fact["items"][0])
         self.assertFalse([c for c in seq["cards"] if c["title"].startswith("UNKNOWN")], "folded is not unknown")
 
+    def test_canvas_widens_with_the_participant_count(self):
+        # archify shares the viewBox among participants; 5 of them in 900px left a 131px box
+        # where even "data-enrichment-service" did not fit (real trace, 2026-09-27).
+        spans = [span("r", None, "data-enrichment-service", "consume", "SERVER", T0, T0 + 50_000_000)]
+        for i, peer in enumerate(["DynamoDB", "Data-Enrichment-BaseGlobal.fifo", "mostqiapi.com", "cache-service"]):
+            spans.append(span(f"c{i}", "r", "data-enrichment-service", f"call {i}", "CLIENT", T0 + i * 1_000_000, T0 + i * 1_000_000 + 500_000,
+                              attrs={"peer.service": peer}))
+        seq = td.build_sequence(doc_with(spans))
+        self.assertEqual(len(seq["participants"]), 5)
+        self.assertEqual(seq["meta"]["viewBox"][0], 5 * td.PARTICIPANT_WIDTH)          # 1050: the showcase ceiling
+        self.assertLessEqual(seq["meta"]["viewBox"][0], td.SHOWCASE_MAX_WIDTH)
+        for p in seq["participants"]:
+            self.assertLessEqual(len(p["label"]), td.PARTICIPANT_CHARS)
+        self.assertEqual(seq["participants"][0]["label"], "data-enrichment-service", "23 chars fit a 163px box")
+        compact = td.build_sequence(doc_with(spans), compact=True)
+        self.assertGreater(compact["meta"]["viewBox"][0], seq["meta"]["viewBox"][0])
+        for p in compact["participants"]:
+            self.assertLessEqual(len(p["label"]), td.COMPACT_CHARS)
+
+    def test_canvas_rule_measured_on_archify(self):
+        # four participants keep the 900px canvas (goldens unchanged); five hit the showcase ceiling;
+        # beyond that the canvas stays at the ceiling and the label cap shrinks with the box.
+        self.assertEqual(td.canvas_and_label_cap(3), (900, 24))
+        self.assertEqual(td.canvas_and_label_cap(4), (900, 24))
+        self.assertEqual(td.canvas_and_label_cap(5), (1050, 23))
+        width6, chars6 = td.canvas_and_label_cap(6)
+        self.assertEqual(width6, 1050)
+        self.assertLess(chars6, 23)
+        self.assertGreaterEqual(chars6, td.COMPACT_CHARS)
+        self.assertEqual(td.canvas_and_label_cap(2, compact=True), (1350, td.COMPACT_CHARS))
+
+    def test_http_span_nested_in_a_queue_send_is_folded(self):
+        spans = [span("r", None, "svc", "handle", "SERVER", T0, T0 + 50_000_000),
+                 span("send", "r", "svc", "orders.fifo send", "PRODUCER", T0 + 1_000_000, T0 + 9_000_000,
+                      attrs={"messaging.system": "aws_sqs", "messaging.destination.name": "orders.fifo"}),
+                 span("http", "send", "svc", "POST", "CLIENT", T0 + 2_000_000, T0 + 8_000_000,
+                      attrs={"net.peer.name": "sqs.us-east-2.amazonaws.com", "http.status_code": 200})]
+        seq = td.build_sequence(doc_with(spans))
+        self.assertEqual([p["label"] for p in seq["participants"]], ["svc", "orders.fifo"])
+        self.assertEqual(len(seq["messages"]), 1)
+
     def test_db_system_alone_still_names_a_database(self):
         spans = [span("r", None, "svc", "GET /x", "SERVER", T0, T0 + 50_000_000),
                  span("q", "r", "svc", "SELECT users", "CLIENT", T0 + 1_000_000, T0 + 9_000_000, attrs={"db.system": "postgresql"})]
@@ -339,8 +380,25 @@ class ArchifyTest(unittest.TestCase):
         finally:
             td.archify_status, td.deliver = old
         self.assertEqual(calls, ["showcase", "standard"])
-        self.assertEqual((r["status"], r["quality"]), ("generated", "standard"))
+        self.assertEqual((r["status"], r["quality"], r["compact"]), ("generated", "standard", False))
         self.assertIn("evidence only", td.summary_line(r))
+
+        # third attempt: the compact spec (shorter labels, wider canvas) when standard also fails
+        calls.clear()
+        def deliver_compact_only(archify, node, seq_path, html_path, quality):
+            calls.append(quality)
+            spec = json.loads(seq_path.read_text())
+            if spec["meta"]["viewBox"][0] <= td.VIEWBOX_WIDTH:
+                return {"ok": False, "error": "layout/constraint: label wider than the participant box"}
+            html_path.write_text("<html>ok</html>")
+            return {"ok": True, "receipt": {"validation": {"errors": 0}}}
+        td.archify_status, td.deliver = fake_status, deliver_compact_only
+        try:
+            r = td.render(doc_with(spans), out)
+        finally:
+            td.archify_status, td.deliver = old
+        self.assertEqual(calls, ["showcase", "standard", "standard"])
+        self.assertEqual((r["status"], r["compact"]), ("generated", True))
 
         td.archify_status, td.deliver = fake_status, (lambda *a, **k: {"ok": False, "error": "boom"})
         try:

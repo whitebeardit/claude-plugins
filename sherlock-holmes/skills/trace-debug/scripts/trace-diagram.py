@@ -36,6 +36,14 @@ SCHEMA_VERSION = 1
 MAX_MESSAGES = 40            # above this the diagram stops being readable; see cap()
 Y0, STEP = 170, 44           # archify requires messages[].y >= 160
 VIEWBOX_WIDTH = 900
+# Measured on archify 2.17 (2026-09-27): the participant box is ~viewBox/n - 47px, a label costs
+# ~6.8px per character, and the showcase profile refuses a viewBox wider than ~1050px (it must fit
+# a 1440px desktop at >= 0.85 scale). So the canvas grows 210px per participant up to that ceiling,
+# and the label cap adapts to the box that is left. Standard quality has no width ceiling.
+PARTICIPANT_WIDTH = 210
+SHOWCASE_MAX_WIDTH = 1050
+BOX_MARGIN_PX = 47
+PX_PER_CHAR = 6.8
 MIN_NODE_MAJOR = 18
 ARCHIFY_TIMEOUT_S = 120
 LABEL_CHARS = 48
@@ -46,7 +54,8 @@ NOTE_CHARS = 120
 # stays in the JSON, which the agent reads with Read when it needs the detail.
 PEER_KEYS = ("peer.service", "net.peer.name", "server.address")
 RPC_KEYS = ("rpc.service",)   # AWS SDK / gRPC spans name the callee here and record no host
-PARTICIPANT_CHARS = 24        # archify's participant box is ~190px; a longer label fails its layout check
+PARTICIPANT_CHARS = 24        # upper cap; the real cap per diagram comes from canvas_and_label_cap()
+COMPACT_CHARS = 16            # last-resort pass when the layout check still rejects a label
 BUS_KEYS = ("messaging.destination.name", "messaging.destination", "messaging.system")
 STATUS_KEYS = ("http.status_code", "http.response.status_code", "rpc.grpc.status_code")
 DB_KEY = "db.system"
@@ -112,13 +121,28 @@ def peer_of(attrs: dict) -> tuple[str | None, str | None, str | None]:
     return None, None, None
 
 
-def participant_label(name: str) -> tuple[str, str | None]:
+def canvas_and_label_cap(n_participants: int, compact: bool = False) -> tuple[int, int]:
+    """(viewBox width, max label chars) for n participants.
+
+    Normal: 210px per participant, never below 900 and never above the showcase ceiling; the label
+    cap is whatever fits the resulting box. Compact (last resort, standard quality only): shorter
+    labels and a canvas 1.5x wider, past the showcase ceiling since standard does not check it.
+    """
+    n = max(1, n_participants)
+    if compact:
+        return int(max(VIEWBOX_WIDTH, PARTICIPANT_WIDTH * n) * 1.5), COMPACT_CHARS
+    width = max(VIEWBOX_WIDTH, min(SHOWCASE_MAX_WIDTH, PARTICIPANT_WIDTH * n))
+    box = width / n - BOX_MARGIN_PX
+    return width, max(COMPACT_CHARS, min(PARTICIPANT_CHARS, int(box / PX_PER_CHAR)))
+
+
+def participant_label(name: str, chars: int = PARTICIPANT_CHARS) -> tuple[str, str | None]:
     """Fit the participant box: a long hostname keeps its first DNS label and moves the rest
     to the sublabel (`dynamodb` / `us-east-2.amazonaws.com`). Anything else is truncated."""
-    if len(name) > PARTICIPANT_CHARS and "." in name and " " not in name:
+    if len(name) > chars and "." in name and " " not in name:
         head, _, tail = name.partition(".")
-        return clean(head, PARTICIPANT_CHARS), clean(tail, PARTICIPANT_CHARS)
-    return clean(name, PARTICIPANT_CHARS), None
+        return clean(head, chars), clean(tail, chars)
+    return clean(name, chars), None
 
 
 def _status_code(*spans) -> str | None:
@@ -144,8 +168,13 @@ def _error_path(spans: list, by_id: dict) -> set:
     return keep
 
 
-def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "showcase") -> dict | None:
-    """Pure: collector document -> archify sequence specification, or None when there are no spans."""
+def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "showcase",
+                   compact: bool = False) -> dict | None:
+    """Pure: collector document -> archify sequence specification, or None when there are no spans.
+
+    `compact` is the last-resort layout: shorter participant labels and a wider canvas, used only
+    after archify rejected the normal spec (its participant box shrinks with the participant count).
+    """
     tempo = doc.get("tempo") or {}
     spans = [s for s in (tempo.get("spans") or []) if s.get("span_id")]
     if not spans:
@@ -164,10 +193,7 @@ def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "
     def participant(name: str, ptype: str, sub: str | None = None) -> str:
         if name not in ids:
             ids[name] = slug(name, taken)
-            label, auto_sub = participant_label(name)
-            sublabel = clean(sub, PARTICIPANT_CHARS) if sub else auto_sub
-            parts.append({"id": ids[name], "type": ptype, "label": label,
-                          **({"sublabel": sublabel} if sublabel else {})})
+            parts.append({"id": ids[name], "type": ptype, "name": name, "sub": sub})   # labelled at the end
         return ids[name]
 
     for s in spans:
@@ -184,9 +210,10 @@ def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "
         dur_txt = f"{dur:.0f} ms" if isinstance(dur, (int, float)) else "? ms"
         if kind == "CLIENT":
             # An outbound span nested in an outbound span is the same call one layer
-            # down (SDK operation → its HTTP request): draw the outer one only.
+            # down (SDK operation → its HTTP request, queue send → its HTTP POST):
+            # draw the outer one only.
             parent = by_id.get(s.get("parent_span_id") or "")
-            if parent and parent.get("kind") == "CLIENT" and parent["span_id"] in drawn_client:
+            if parent and parent.get("kind") in ("CLIENT", "PRODUCER") and parent["span_id"] in drawn_client:
                 folded += 1
                 continue
             child = server_child.get(s["span_id"])
@@ -218,6 +245,7 @@ def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "
                 unnamed += 1
                 continue
             bid = participant(bus, "messagebus")
+            drawn_client.add(s["span_id"])
             me = ids[s["service"]]
             events.append({"ts": s.get("start") or "", "from": me if kind == "PRODUCER" else bid,
                            "to": bid if kind == "PRODUCER" else me,
@@ -316,14 +344,22 @@ def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "
         views.append({"id": "first-span-to-fail", "label": "First span to fail", "focus": focus,
                       "note": "Earliest span with error status. Being first is a fact; being the cause is the investigator's call."})
 
+    width, chars = canvas_and_label_cap(len(parts), compact)
+    participants = []
+    for p in parts:
+        label, auto_sub = participant_label(p["name"], chars)
+        sublabel = clean(p["sub"], chars) if p["sub"] else auto_sub
+        participants.append({"id": p["id"], "type": p["type"], "label": label,
+                             **({"sublabel": sublabel} if sublabel else {})})
+
     tid = str(doc.get("trace_id") or "")
     return {
         "schema_version": SCHEMA_VERSION, "diagram_type": "sequence",
         "meta": {"title": clean(f'Trace {tid[:16]}… · {root.get("service")} {root.get("operation")}', 80),
                  "subtitle": f"trace {tid} · evidence only: spans as recorded, no causal claim",
-                 "viewBox": [VIEWBOX_WIDTH, last_y + 300], "animation": "trace",
+                 "viewBox": [width, last_y + 300], "animation": "trace",
                  "quality_profile": quality, "column_fit": "spread", "views": views},
-        "participants": parts, "messages": messages, "activations": activations, "cards": cards,
+        "participants": participants, "messages": messages, "activations": activations, "cards": cards,
     }
 
 
@@ -405,7 +441,7 @@ def deliver(archify: Path, node: str | None, seq_path: Path, html_path: Path, qu
 def render(doc: dict, out_html: Path, archify: str | None = None, quality: str = "showcase",
            max_messages: int = MAX_MESSAGES) -> dict:
     result = {"status": None, "html": None, "sequence": None, "reason": None, "quality": None,
-              "messages": 0, "omitted": 0, "archify": None, "version": VERSION}
+              "compact": False, "messages": 0, "omitted": 0, "archify": None, "version": VERSION}
     seq = build_sequence(doc, max_messages, quality)
     if seq is None:
         result.update(status="skipped", reason=f"no spans to draw: Tempo status is {(doc.get('tempo') or {}).get('status', 'unknown')}")
@@ -430,12 +466,14 @@ def render(doc: dict, out_html: Path, archify: str | None = None, quality: str =
         result.update(status="skipped", reason=status["reason"])
         return result
     last = ""
-    for q in [quality] + (["standard"] if quality != "standard" else []):
-        seq["meta"]["quality_profile"] = q
-        seq_path.write_text(json.dumps(seq, indent=1, ensure_ascii=False), encoding="utf-8")
+    attempts = [(quality, False)] + ([("standard", False)] if quality != "standard" else []) + [("standard", True)]
+    for q, compact in attempts:
+        spec = build_sequence(doc, max_messages, q, compact=compact) if compact else seq
+        spec["meta"]["quality_profile"] = q
+        seq_path.write_text(json.dumps(spec, indent=1, ensure_ascii=False), encoding="utf-8")
         r = deliver(Path(status["archify"]), status["node"], seq_path, out_html, q)
         if r["ok"]:
-            result.update(status="generated", html=str(out_html), quality=q)
+            result.update(status="generated", html=str(out_html), quality=q, compact=compact)
             return result
         last = r["error"]
     result.update(status="failed", reason=f"archify rejected the diagram: {last}")
