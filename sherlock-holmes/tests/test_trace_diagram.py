@@ -208,6 +208,44 @@ class EvidenceOnlyTest(unittest.TestCase):
         self.assertEqual((seq["messages"][1]["from"], seq["messages"][1]["to"]), ("orders", "worker"))
 
 
+class RealTraceShapesTest(unittest.TestCase):
+    """Shapes met on the first real trace (an AWS service, 2026-09-27) that the fixtures lack."""
+
+    def test_long_hostname_is_split_into_label_and_sublabel(self):
+        spans = [span("r", None, "svc", "GET /x", "SERVER", T0, T0 + 50_000_000),
+                 span("c", "r", "svc", "POST", "CLIENT", T0 + 1_000_000, T0 + 9_000_000,
+                      attrs={"net.peer.name": "dynamodb.us-east-2.amazonaws.com", "http.status_code": 200})]
+        seq = td.build_sequence(doc_with(spans))
+        p = [x for x in seq["participants"] if x["id"] != "svc"][0]
+        self.assertEqual((p["label"], p["sublabel"]), ("dynamodb", "us-east-2.amazonaws.com"))
+        for x in seq["participants"]:
+            self.assertLessEqual(len(x["label"]), td.PARTICIPANT_CHARS)
+
+    def test_rpc_service_names_the_callee_and_nested_http_span_is_folded(self):
+        # AWS SDK: DynamoDB.GetItem (rpc.*, no host) → child HTTP CLIENT span with the host.
+        spans = [span("r", None, "svc", "GET /x", "SERVER", T0, T0 + 50_000_000),
+                 span("op", "r", "svc", "DynamoDB.GetItem", "CLIENT", T0 + 1_000_000, T0 + 9_000_000,
+                      attrs={"rpc.system": "aws-api", "rpc.service": "DynamoDB", "rpc.method": "GetItem",
+                             "db.system": "dynamodb", "db.operation": "GetItem", "http.status_code": 200}),
+                 span("http", "op", "svc", "POST", "CLIENT", T0 + 2_000_000, T0 + 8_000_000,
+                      attrs={"net.peer.name": "dynamodb.us-east-2.amazonaws.com", "http.status_code": 200})]
+        seq = td.build_sequence(doc_with(spans))
+        callee = [x for x in seq["participants"] if x["id"] != "svc"]
+        self.assertEqual(len(callee), 1, "one callee, not one per layer")
+        self.assertEqual((callee[0]["label"], callee[0]["type"], callee[0]["sublabel"]), ("DynamoDB", "database", "dynamodb"))
+        self.assertEqual(len(seq["messages"]), 2, "the SDK call and its return; the HTTP layer is folded")
+        self.assertIn("DynamoDB.GetItem", seq["messages"][0]["label"])
+        fact = [c for c in seq["cards"] if c["title"] == "FACT · not drawn, on purpose"][0]
+        self.assertIn("1 nested outbound span(s) folded", fact["items"][0])
+        self.assertFalse([c for c in seq["cards"] if c["title"].startswith("UNKNOWN")], "folded is not unknown")
+
+    def test_db_system_alone_still_names_a_database(self):
+        spans = [span("r", None, "svc", "GET /x", "SERVER", T0, T0 + 50_000_000),
+                 span("q", "r", "svc", "SELECT users", "CLIENT", T0 + 1_000_000, T0 + 9_000_000, attrs={"db.system": "postgresql"})]
+        seq = td.build_sequence(doc_with(spans))
+        self.assertEqual([(x["label"], x["type"]) for x in seq["participants"]][1], ("postgresql", "database"))
+
+
 class CapTest(unittest.TestCase):
     def _wide_trace(self, calls: int, failing: int):
         spans = [span("root", None, "edge", "GET /wide", "SERVER", T0, T0 + calls * 20_000_000)]
@@ -223,8 +261,9 @@ class CapTest(unittest.TestCase):
         self.assertLessEqual(len(seq["messages"]), 40)
         labels = " ".join(m["label"] for m in seq["messages"])
         self.assertIn("GET svc7/x", labels, "the failing call must survive the cap")
-        unknown = [c for c in seq["cards"] if c["title"].startswith("UNKNOWN")][0]
-        self.assertIn("20 of 60 messages omitted", " ".join(unknown["items"]))
+        policy = [c for c in seq["cards"] if c["title"] == "FACT · not drawn, on purpose"][0]
+        self.assertIn("20 of 60 messages omitted", " ".join(policy["items"]))
+        self.assertFalse([c for c in seq["cards"] if c["title"].startswith("UNKNOWN")], "omission is a policy, not an unknown")
         ys = [m["y"] for m in seq["messages"]]
         self.assertEqual(ys, sorted(ys))
 
