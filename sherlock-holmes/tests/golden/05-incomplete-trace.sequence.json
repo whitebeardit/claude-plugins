@@ -4,7 +4,7 @@
    "from": 140,
    "participant": "api",
    "to": 410,
-   "type": "backend"
+   "type": "security"
   },
   {
    "from": 164,
@@ -24,7 +24,7 @@
    "title": "FACT · trace"
   },
   {
-   "dot": "orange",
+   "dot": "rose",
    "items": [
     "order-service · POST fulfillment-service/fulfil",
     "14:02:31.040 → 14:03:00.840 · 29800 ms",
@@ -39,7 +39,7 @@
    "from": "api",
    "label": "POST order-service/orders  14:02:31.003",
    "to": "order-service",
-   "variant": "emphasis",
+   "variant": "default",
    "y": 170
   },
   {
@@ -60,27 +60,47 @@
    "from": "order-service",
    "label": "POST fulfillment-service/fulfil  14:02:31.040",
    "to": "fulfillment-service",
-   "variant": "emphasis",
+   "variant": "default",
    "y": 302
   },
   {
    "from": "fulfillment-service",
    "label": "ERROR  14:03:00.840  29800 ms  context deadline exceeded",
    "to": "order-service",
-   "variant": "return",
+   "variant": "security",
    "y": 346
   },
   {
    "from": "order-service",
    "label": "202  14:03:00.999  29996 ms",
    "to": "api",
-   "variant": "return",
+   "variant": "security",
    "y": 390
   }
  ],
  "meta": {
   "animation": "trace",
   "column_fit": "spread",
+  "legend": {
+   "entries": {
+    "dashed": {
+     "label": "queue"
+    },
+    "default": {
+     "label": "call"
+    },
+    "emphasis": {
+     "label": "4xx"
+    },
+    "return": {
+     "label": "ok"
+    },
+    "security": {
+     "label": "5xx / error"
+    }
+   },
+   "mode": "auto"
+  },
   "quality_profile": "showcase",
   "subtitle": "trace 3d31213bebd065c9c19e80638a071b36 · evidence only: spans as recorded, no causal claim",
   "title": "Trace 3d31213bebd065c9… · api POST /orders",

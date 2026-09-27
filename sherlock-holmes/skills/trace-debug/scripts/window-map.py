@@ -191,7 +191,7 @@ def build_map(agg: dict, stats: dict, window: dict, n_search: int, n_drawn: int,
     messages = []
     for i, ((caller, callee, op), g) in enumerate(items):
         m = {"from": ids[caller], "to": ids[callee], "y": td.Y0 + i * td.STEP, "label": arrow_label((caller, callee, op), g),
-             "variant": "emphasis" if g["errors"] else ("dashed" if g["kind"] != "call" else "default"),
+             "variant": "security" if g["errors"] else ("dashed" if g["kind"] != "call" else "default"),
              "note": f"{len(g['traces'])} trace(s) · first {sw.iso_ms(g['first_ns'])[11:23] if g['first_ns'] else '?'}"}
         messages.append(m)
     last_y = td.Y0 + td.STEP * max(len(messages) - 1, 0)
@@ -243,7 +243,8 @@ def build_map(agg: dict, stats: dict, window: dict, n_search: int, n_drawn: int,
         "meta": {"title": td.clean(f"Window map · {window['start'][:16].replace('T', ' ')} → {window['end'][11:16]} UTC", 80),
                  "subtitle": "evidence only: calls as recorded in traces with an error span; no causal claim",
                  "viewBox": [width, last_y + 300], "animation": "trace", "quality_profile": quality,
-                 "column_fit": "spread", "views": views},
+                 "column_fit": "spread", "views": views,
+                 "legend": td.legend({"default": "call", "security": "has errors", "dashed": "queue"})},
         "participants": participants, "messages": messages, "activations": [], "cards": cards,
     }
 

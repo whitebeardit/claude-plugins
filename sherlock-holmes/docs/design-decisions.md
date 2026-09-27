@@ -344,3 +344,31 @@ attempt, 2.9 s).
 What it does not claim: the sample is the traces that had an error span (newest first, declared),
 so calls of error-free traces are absent and the card says so; a root span's caller is counted and
 never drawn; an error inside a service with no call is listed as UNKNOWN rather than dropped.
+
+## D23. Colour says the outcome of a span, never the cause
+
+Every arrow used to be the same colour, so a diagram of a failing request looked like a healthy one
+until you read the labels. Error semantics now use archify's own variants, chosen from facts on the
+span, with the legend switched on (`meta.legend`, mode `auto`, so only the variants present appear):
+
+| Fact on the span | Variant | Looks like |
+| --- | --- | --- |
+| outbound call | `default` | grey |
+| return, error status or 5xx | `security` | red, dashed |
+| return, 4xx without error status | `emphasis` | amber |
+| return, anything else | `return` | plain |
+| SERVER span with error status | activation `type: security` | red bar |
+| queue send / delivery | `dashed` | violet, dashed |
+
+`security` is the only red in every archify preset, so it is reused for "error" even though its name
+is about something else; the legend relabels it. The call stays neutral and the return is coloured,
+because the outcome is only known when the span ends. 4xx is amber, not red: OpenTelemetry marks a
+4xx as an error for the client and not for the server, so it is only red when the span itself says
+error. In the window map an arrow stands for many calls, so it turns red when any of them had error
+status and the label keeps the count (`6× POST · 3 err`).
+
+What it does not claim: colour follows status, never inference. A span that failed without setting
+error status or an HTTP code draws plain, and a red arrow is not "the cause" - the first span to fail
+is still a fact, the cause is still the investigator's call. Legend labels are short on purpose:
+archify measures them narrower than they render, and long ones overlap the next entry.
+

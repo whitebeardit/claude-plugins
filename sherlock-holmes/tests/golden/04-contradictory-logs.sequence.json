@@ -10,7 +10,7 @@
    "from": 164,
    "participant": "payment-service",
    "to": 308,
-   "type": "backend"
+   "type": "security"
   },
   {
    "from": 208,
@@ -30,7 +30,7 @@
    "title": "FACT · trace"
   },
   {
-   "dot": "orange",
+   "dot": "rose",
    "items": [
     "payment-service · POST /charge",
     "14:02:31.008 → 14:02:31.130 · 122 ms",
@@ -67,13 +67,33 @@
    "label": "ERROR  14:02:31.135  130 ms",
    "note": "[error] 14:02:31.120 charge declined by gateway (code 51)",
    "to": "checkout-service",
-   "variant": "return",
+   "variant": "security",
    "y": 302
   }
  ],
  "meta": {
   "animation": "trace",
   "column_fit": "spread",
+  "legend": {
+   "entries": {
+    "dashed": {
+     "label": "queue"
+    },
+    "default": {
+     "label": "call"
+    },
+    "emphasis": {
+     "label": "4xx"
+    },
+    "return": {
+     "label": "ok"
+    },
+    "security": {
+     "label": "5xx / error"
+    }
+   },
+   "mode": "auto"
+  },
   "quality_profile": "showcase",
   "subtitle": "trace 59d23822d96610672a554274570b5bd7 · evidence only: spans as recorded, no causal claim",
   "title": "Trace 59d23822d9661067… · checkout-service POST /checkout",

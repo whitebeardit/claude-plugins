@@ -4,19 +4,19 @@
    "from": 140,
    "participant": "api",
    "to": 410,
-   "type": "backend"
+   "type": "security"
   },
   {
    "from": 164,
    "participant": "payment-service",
    "to": 396,
-   "type": "backend"
+   "type": "security"
   },
   {
    "from": 208,
    "participant": "customer-service",
    "to": 352,
-   "type": "backend"
+   "type": "security"
   }
  ],
  "cards": [
@@ -30,7 +30,7 @@
    "title": "FACT · trace"
   },
   {
-   "dot": "orange",
+   "dot": "rose",
    "items": [
     "customer-service · SELECT customer",
     "14:02:31.030 → 14:02:33.032 · 2002 ms",
@@ -45,21 +45,21 @@
    "from": "api",
    "label": "POST payment-service/charge  14:02:31.005",
    "to": "payment-service",
-   "variant": "emphasis",
+   "variant": "default",
    "y": 170
   },
   {
    "from": "payment-service",
    "label": "GET customer-service/customers/42  14:02:31.020",
    "to": "customer-service",
-   "variant": "emphasis",
+   "variant": "default",
    "y": 214
   },
   {
    "from": "customer-service",
    "label": "SELECT customer  14:02:31.030",
    "to": "customers-db",
-   "variant": "emphasis",
+   "variant": "default",
    "y": 258
   },
   {
@@ -67,7 +67,7 @@
    "label": "ERROR  14:02:33.032  2002 ms  connection timeout after 2000ms",
    "note": "[error] 14:02:33.031 PostgreSQL connection timeout after 2000ms",
    "to": "customer-service",
-   "variant": "return",
+   "variant": "security",
    "y": 302
   },
   {
@@ -75,7 +75,7 @@
    "label": "503  14:02:33.150  2130 ms  database unavailable",
    "note": "[warn] 14:02:33.144 HTTP 503",
    "to": "payment-service",
-   "variant": "return",
+   "variant": "security",
    "y": 346
   },
   {
@@ -83,13 +83,33 @@
    "label": "502  14:02:33.170  2165 ms  upstream customer-service returned 503",
    "note": "[error] 14:02:33.160 upstream customer-service returned 503",
    "to": "api",
-   "variant": "return",
+   "variant": "security",
    "y": 390
   }
  ],
  "meta": {
   "animation": "trace",
   "column_fit": "spread",
+  "legend": {
+   "entries": {
+    "dashed": {
+     "label": "queue"
+    },
+    "default": {
+     "label": "call"
+    },
+    "emphasis": {
+     "label": "4xx"
+    },
+    "return": {
+     "label": "ok"
+    },
+    "security": {
+     "label": "5xx / error"
+    }
+   },
+   "mode": "auto"
+  },
   "quality_profile": "showcase",
   "subtitle": "trace 2aa803b2e40c97a2490d754a465fe9de · evidence only: spans as recorded, no causal claim",
   "title": "Trace 2aa803b2e40c97a2… · api POST /payment",

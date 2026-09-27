@@ -4,13 +4,13 @@
    "from": 140,
    "participant": "api",
    "to": 410,
-   "type": "backend"
+   "type": "security"
   },
   {
    "from": 164,
    "participant": "report-service",
    "to": 396,
-   "type": "backend"
+   "type": "security"
   },
   {
    "from": 208,
@@ -30,7 +30,7 @@
    "title": "FACT · trace"
   },
   {
-   "dot": "orange",
+   "dot": "rose",
    "items": [
     "report-service · S3 GetObject",
     "14:02:31.040 → 14:02:32.240 · 1200 ms",
@@ -45,7 +45,7 @@
    "from": "api",
    "label": "GET report-service/reports/9  14:02:31.004",
    "to": "report-service",
-   "variant": "emphasis",
+   "variant": "default",
    "y": 170
   },
   {
@@ -66,14 +66,14 @@
    "from": "report-service",
    "label": "S3 GetObject  14:02:31.040",
    "to": "S3",
-   "variant": "emphasis",
+   "variant": "default",
    "y": 302
   },
   {
    "from": "S3",
    "label": "ERROR  14:02:32.240  1200 ms  AccessDenied: User is not authorized to…",
    "to": "report-service",
-   "variant": "return",
+   "variant": "security",
    "y": 346
   },
   {
@@ -81,13 +81,33 @@
    "label": "500  14:02:32.252  1248 ms  request failed",
    "note": "[error] 14:02:32.245 request failed",
    "to": "api",
-   "variant": "return",
+   "variant": "security",
    "y": 390
   }
  ],
  "meta": {
   "animation": "trace",
   "column_fit": "spread",
+  "legend": {
+   "entries": {
+    "dashed": {
+     "label": "queue"
+    },
+    "default": {
+     "label": "call"
+    },
+    "emphasis": {
+     "label": "4xx"
+    },
+    "return": {
+     "label": "ok"
+    },
+    "security": {
+     "label": "5xx / error"
+    }
+   },
+   "mode": "auto"
+  },
   "quality_profile": "showcase",
   "subtitle": "trace c9495e68967f71fcc212c8f6d80597b1 · evidence only: spans as recorded, no causal claim",
   "title": "Trace c9495e68967f71fc… · api GET /reports/9",
