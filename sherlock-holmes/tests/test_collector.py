@@ -91,6 +91,12 @@ class TraceIdTests(unittest.TestCase):
     def test_accepts_traceparent(self):
         self.assertEqual(ct.normalise_trace_id(f"00-{TID}-{SPAN_A}-01"), TID)
 
+    def test_pads_ids_that_tempo_search_prints_without_leading_zeros(self):
+        self.assertEqual(ct.normalise_trace_id("17c440bcef7f31f210bb561ee62c187"), "017c440bcef7f31f210bb561ee62c187")
+        self.assertEqual(ct.normalise_trace_id("7c440bcef7f31f2"), "07c440bcef7f31f2")
+        with self.assertRaises(ValueError):
+            ct.normalise_trace_id("12345678909")      # a CPF is never padded into a query
+
     def test_rejects_numeric_document_like_input(self):
         with self.assertRaises(ValueError) as cm:
             ct.normalise_trace_id("12345678901")

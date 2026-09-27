@@ -133,6 +133,13 @@ def normalise_trace_id(raw: str) -> str:
     if re.fullmatch(r"\d{11}|\d{14}", t):
         raise ValueError("input looks like a numeric document/account identifier, not a trace id; "
                          "trace ids are 16 or 32 hex characters")
+    # Tempo's search API prints a 128-bit id without its leading zeros (31 hex characters are
+    # common), and a pasted id then fails an exact-length check. Restore the zeros; the numeric
+    # document guard above runs first so a CPF/CNPJ is never padded into a query.
+    if re.fullmatch(r"[0-9a-f]{17,31}", t):
+        return t.zfill(32)
+    if re.fullmatch(r"[0-9a-f]{9,15}", t):
+        return t.zfill(16)
     raise ValueError("invalid trace id: expected 16 or 32 hex characters (or a W3C traceparent)")
 
 

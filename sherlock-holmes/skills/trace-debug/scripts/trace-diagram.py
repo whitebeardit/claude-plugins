@@ -45,6 +45,8 @@ NOTE_CHARS = 120
 # these attributes. Everything else - db.statement, http.url with ids, headers, message bodies -
 # stays in the JSON, which the agent reads with Read when it needs the detail.
 PEER_KEYS = ("peer.service", "net.peer.name", "server.address")
+RPC_KEYS = ("rpc.service",)   # AWS SDK / gRPC spans name the callee here and record no host
+PARTICIPANT_CHARS = 24        # archify's participant box is ~190px; a longer label fails its layout check
 BUS_KEYS = ("messaging.destination.name", "messaging.destination", "messaging.system")
 STATUS_KEYS = ("http.status_code", "http.response.status_code", "rpc.grpc.status_code")
 DB_KEY = "db.system"
@@ -91,6 +93,34 @@ def _first(attrs: dict, keys) -> str | None:
     return None
 
 
+def peer_of(attrs: dict) -> tuple[str | None, str | None, str | None]:
+    """Callee of an outbound span: (name, participant type, sublabel).
+
+    A named peer first; else the RPC service (the AWS SDK emits `DynamoDB.GetItem`
+    spans with `rpc.service` and no host, and puts the host on a nested HTTP span);
+    else the database system alone. Nothing else is ever used as a name.
+    """
+    named = _first(attrs, PEER_KEYS)
+    if named:
+        return named, ("database" if attrs.get(DB_KEY) else "backend"), (attrs.get(DB_KEY) or None)
+    rpc = _first(attrs, RPC_KEYS)
+    if rpc:
+        ptype = "database" if attrs.get(DB_KEY) else ("cloud" if attrs.get("rpc.system") == "aws-api" else "backend")
+        return rpc, ptype, (attrs.get(DB_KEY) or attrs.get("rpc.system") or None)
+    if attrs.get(DB_KEY):
+        return str(attrs[DB_KEY]), "database", None
+    return None, None, None
+
+
+def participant_label(name: str) -> tuple[str, str | None]:
+    """Fit the participant box: a long hostname keeps its first DNS label and moves the rest
+    to the sublabel (`dynamodb` / `us-east-2.amazonaws.com`). Anything else is truncated."""
+    if len(name) > PARTICIPANT_CHARS and "." in name and " " not in name:
+        head, _, tail = name.partition(".")
+        return clean(head, PARTICIPANT_CHARS), clean(tail, PARTICIPANT_CHARS)
+    return clean(name, PARTICIPANT_CHARS), None
+
+
 def _status_code(*spans) -> str | None:
     for s in spans:
         v = _first(s.get("attributes") or {}, STATUS_KEYS)
@@ -134,8 +164,10 @@ def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "
     def participant(name: str, ptype: str, sub: str | None = None) -> str:
         if name not in ids:
             ids[name] = slug(name, taken)
-            parts.append({"id": ids[name], "type": ptype, "label": clean(name, 40),
-                          **({"sublabel": clean(sub, 24)} if sub else {})})
+            label, auto_sub = participant_label(name)
+            sublabel = clean(sub, PARTICIPANT_CHARS) if sub else auto_sub
+            parts.append({"id": ids[name], "type": ptype, "label": label,
+                          **({"sublabel": sublabel} if sublabel else {})})
         return ids[name]
 
     for s in spans:
@@ -143,20 +175,30 @@ def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "
 
     # events: one per message, chronological; role/span keep call+return together for the cap
     events: list = []
-    unnamed = 0
-    for s in spans:
+    unnamed = folded = 0
+    drawn_client: set = set()
+    for s in spans:                          # tree order: a parent comes before its children
         a = s.get("attributes") or {}
         kind = s.get("kind")
         dur = s.get("duration_ms")
         dur_txt = f"{dur:.0f} ms" if isinstance(dur, (int, float)) else "? ms"
         if kind == "CLIENT":
+            # An outbound span nested in an outbound span is the same call one layer
+            # down (SDK operation → its HTTP request): draw the outer one only.
+            parent = by_id.get(s.get("parent_span_id") or "")
+            if parent and parent.get("kind") == "CLIENT" and parent["span_id"] in drawn_client:
+                folded += 1
+                continue
             child = server_child.get(s["span_id"])
-            peer = child["service"] if child else _first(a, PEER_KEYS)
+            if child:
+                peer, ptype, sub = child["service"], "backend", None
+            else:
+                peer, ptype, sub = peer_of(a)
             if not peer:
                 unnamed += 1
                 continue
-            ptype = "database" if a.get(DB_KEY) else "backend"
-            pid = participant(peer, ptype, a.get(DB_KEY) if ptype == "database" else None)
+            pid = participant(peer, ptype, sub)
+            drawn_client.add(s["span_id"])
             events.append({"ts": s.get("start") or "", "from": ids[s["service"]], "to": pid,
                            "label": f'{clean(s.get("operation"))}  {clock(s.get("start"))}',
                            "variant": "emphasis" if s.get("error") else "default",
@@ -256,10 +298,15 @@ def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "
         unknown.append(f'{len(tempo["spans_missing_parent"])} span(s) whose parent is missing from the trace')
     if unnamed:
         unknown.append(f'{unnamed} outbound span(s) without a named destination: not drawn')
-    if omitted:
-        unknown.append(f'{omitted} of {omitted + len(events)} messages omitted to stay readable: error path and slowest calls kept')
     if unknown:
         cards.append({"dot": "orange", "title": "UNKNOWN · not in this diagram", "items": unknown})
+    policy = []
+    if folded:
+        policy.append(f'{folded} nested outbound span(s) folded into the call that contains them')
+    if omitted:
+        policy.append(f'{omitted} of {omitted + len(events)} messages omitted to stay readable: error path and slowest calls kept')
+    if policy:
+        cards.append({"dot": "cyan", "title": "FACT · not drawn, on purpose", "items": policy})
 
     views = [{"id": "request-path", "label": "Request path", "focus": [p["id"] for p in parts][:6],
               "note": "Calls as recorded in spans. The caller of the root span is not in the trace."}]

@@ -3,13 +3,13 @@
   {
    "from": 140,
    "participant": "api",
-   "to": 322,
+   "to": 410,
    "type": "backend"
   },
   {
    "from": 164,
    "participant": "report-service",
-   "to": 308,
+   "to": 396,
    "type": "backend"
   },
   {
@@ -37,13 +37,6 @@
     "AccessDenied: User is not authorized to perform s3:GetObject"
    ],
    "title": "FACT · first span to fail"
-  },
-  {
-   "dot": "orange",
-   "items": [
-    "1 outbound span(s) without a named destination: not drawn"
-   ],
-   "title": "UNKNOWN · not in this diagram"
   }
  ],
  "diagram_type": "sequence",
@@ -71,11 +64,25 @@
   },
   {
    "from": "report-service",
+   "label": "S3 GetObject  14:02:31.040",
+   "to": "S3",
+   "variant": "emphasis",
+   "y": 302
+  },
+  {
+   "from": "S3",
+   "label": "ERROR  14:02:32.240  1200 ms  AccessDenied: User is not authorized to…",
+   "to": "report-service",
+   "variant": "return",
+   "y": 346
+  },
+  {
+   "from": "report-service",
    "label": "500  14:02:32.252  1248 ms  request failed",
    "note": "[error] 14:02:32.245 request failed",
    "to": "api",
    "variant": "return",
-   "y": 302
+   "y": 390
   }
  ],
  "meta": {
@@ -86,14 +93,15 @@
   "title": "Trace c9495e68967f71fc… · api GET /reports/9",
   "viewBox": [
    900,
-   602
+   690
   ],
   "views": [
    {
     "focus": [
      "api",
      "report-service",
-     "cache-service"
+     "cache-service",
+     "S3"
     ],
     "id": "request-path",
     "label": "Request path",
@@ -124,6 +132,12 @@
    "id": "cache-service",
    "label": "cache-service",
    "type": "backend"
+  },
+  {
+   "id": "S3",
+   "label": "S3",
+   "sublabel": "aws-api",
+   "type": "cloud"
   }
  ],
  "schema_version": 1
