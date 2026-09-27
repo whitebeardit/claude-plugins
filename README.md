@@ -11,7 +11,7 @@ A [Claude Code](https://claude.com/claude-code) plugin marketplace.
 
 | Plugin | What it does | Docs |
 | --- | --- | --- |
-| [**sherlock-holmes**](sherlock-holmes/) | Incident investigation by trace ID, over Grafana Loki and Tempo, with an optional interactive sequence diagram of the trace. Read-only. | [README](sherlock-holmes/README.md) · [Quick setup](sherlock-holmes/README.md#quick-setup) · [Design decisions](sherlock-holmes/docs/design-decisions.md) |
+| [**sherlock-holmes**](sherlock-holmes/) | Incident investigation by trace ID, over Grafana Loki and Tempo, with an optional interactive sequence diagram of the trace, and a deterministic error sweep of a time window. Read-only. | [README](sherlock-holmes/README.md) · [Quick setup](sherlock-holmes/README.md#quick-setup) · [Design decisions](sherlock-holmes/docs/design-decisions.md) |
 
 ### Sherlock Holmes
 

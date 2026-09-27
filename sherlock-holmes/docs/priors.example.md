@@ -18,3 +18,11 @@ hypotheses and treats it as team context, not as evidence about the trace under 
 
 ## Dependencies that time out by design
 - `provider-x` has a 2 s budget; on timeout the service returns 202 and retries asynchronously. A 202 is degraded, not failed.
+
+## Known errors
+Read by `error-sweep` only: each backticked text below is matched (case-insensitive) against a sweep
+row's service, operation and message, and a matching row is marked `known`. It is **still listed** -
+the mark tells the reader the team has seen it before, it does not hide it.
+- `GET /stock/<N>` returns 500 for SKUs that were delisted; tracked in the catalogue backlog.
+- `provider-x.example.com` times out at 30 s during its nightly batch window (00:00-01:00 UTC).
+

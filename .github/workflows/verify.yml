@@ -144,7 +144,7 @@ jobs:
       - name: Fixtures are reproducible
         run: |
           rc=0
-          for gen in */evals/fixtures/generate.py; do
+          for gen in */evals/fixtures/generate.py */skills/*/fixtures/generate.py; do
             [ -f "$gen" ] || continue
             dir="$(dirname "$gen")"
             echo "regenerating $gen"

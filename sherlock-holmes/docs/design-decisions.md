@@ -290,3 +290,30 @@ with the skill, before touching any prompt or grader.
 **Confirmed.** Fourth run (2026-09-27 03:23, US$2.58): 6/6, every grader, every case - the first
 clean suite on the new model. Four suites and three local stream runs to get here, about US$11;
 the one that found the cause cost 60 cents.
+
+## D21. Errors in a window: a script answers, the reader chooses
+
+Issue #5 asked for "an agent or skill that could verify for errors during a period of time". The
+question has a factual answer - were there errors, where, how many, since when - so no model is
+needed to produce it, and using one would make the same window give different answers. It is also a
+different shape from `trace-debug`: D2 lets Tempo bound the window from a trace id; here the window
+is the input and there is no id.
+
+`sweep-errors.py` is a sibling of the collector (it imports its access, HTTP and Loki helpers): one
+TraceQL search `{ status = error } | select(...)` - verified on Grafana Cloud to accept the
+intrinsics `kind` and `statusMessage` and to return absent attributes as the string `nil` - plus one
+Loki query for error lines. Spans are grouped by service, masked operation and status code; lines by
+service and a message signature with numbers, ids, UUIDs, IPs, e-mail and tokens masked, keeping a
+3-digit status code right after http/status/code/returned. One ordering rule (count desc, first seen
+asc, key). Floors are declared: `limit` reached or `completedJobs < totalJobs` in the search
+metrics, span sets that matched more than they returned, Loki truncation, INFO lines that matched the
+substring filter (counted, not listed). The window is printed as absolute times, so a re-run
+reproduces it; late ingestion is the one source of drift and the footer says so.
+
+The skill has no agent and no fork, and it tells the conversation to show the table verbatim (D20).
+The user picks a row: `diagram N` runs the collector with `--source tempo` and `trace-diagram.py` on
+the row's most recent example, `investigate N` invokes `trace-debug` - the only step that costs a
+model run, taken because the reader chose it. `## Known errors` in the priors file marks rows, never
+hides them. Not built: severity, alerting or watching (Grafana does that; this is triage), and a
+"window map" of calls between services - planned as a data-flow diagram laid out by rule, since
+archify's dataflow places nodes by stage/row index.

@@ -1,0 +1,16 @@
+Error sweep · window 2026-09-20T00:00:00.000Z → 2026-09-27T00:00:00.000Z (fixture window; absolute, re-run with --start/--end to reproduce)
+Sources: tempo=ok (3 trace(s), 3 error span(s)) | service: all | recorded fixture, not a live backend
+Order: count desc, then first seen. Facts only: no severity, no cause.
+
+TEMPO · spans with error status, by service / operation / status code
+    #  service                  operation                                code      n traces  first                    last                          max
+    1  enrichment-service       POST → provider-x.example.com            -         3      3  2026-09-21 00:12:39.800Z 2026-09-25 00:36:24.800Z   30.00s
+       message: The operation was aborted due to timeout
+       traces: 6705bd940faa23c5b097e8bf4f980931 54c13ffdf5dbc353f82b8493c0576953 4c6d267f572b39fd37c4461da9948f0c
+
+Not covered:
+  - requests that were not sampled never reach Tempo, so their errors are only in the logs (if anywhere)
+  - late ingestion: data can arrive in Tempo and Loki minutes after the fact; a re-run can add rows
+  - spans without an error status (for example a 4xx the service did not flag) are not listed
+
+Next: "diagram <#>" draws the first example trace of that row; "investigate <#>" hands it to /sherlock-holmes:trace-debug.

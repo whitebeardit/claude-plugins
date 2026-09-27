@@ -96,16 +96,18 @@ done
 
 # Fixtures must be reproducible: regenerating them must not change the tree.
 for p in "${all_plugins[@]}"; do
-    gen="$p/evals/fixtures/generate.py"
+  for gen in "$p"/evals/fixtures/generate.py "$p"/skills/*/fixtures/generate.py; do
     [ -f "$gen" ] || continue
     if ! (cd "$(dirname "$gen")" && python3 generate.py >/dev/null 2>&1); then
         die "fixture generator failed: $gen"
     fi
-    if ! git diff --quiet -- "$p/evals/fixtures"; then
-        git checkout -- "$p/evals/fixtures" 2>/dev/null || true
+    fdir="$(dirname "$gen")"
+    if ! git diff --quiet -- "$fdir"; then
+        git checkout -- "$fdir" 2>/dev/null || true
         die "fixtures are not reproducible: regenerating $gen changed the tree"
     fi
-    ok "fixtures reproducible: $p"
+    ok "fixtures reproducible: ${fdir}"
+  done
 done
 
 # ---------------------------------------------------------------- paid eval suite

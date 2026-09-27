@@ -1,0 +1,182 @@
+{
+ "traces": [
+  {
+   "traceID": "4c6d267f572b39fd37c4461da9948f0c",
+   "rootServiceName": "<root span not yet received>",
+   "startTimeUnixNano": "1789949559000000000",
+   "durationMs": 2180,
+   "spanSets": [
+    {
+     "spans": [
+      {
+       "spanID": "e0",
+       "name": "POST",
+       "startTimeUnixNano": "1789949559800000000",
+       "durationNanos": "30001000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "enrichment-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "stringValue": "nil"
+         }
+        },
+        {
+         "key": "net.peer.name",
+         "value": {
+          "stringValue": "provider-x.example.com"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "The operation was aborted due to timeout"
+         }
+        }
+       ]
+      }
+     ],
+     "matched": 1
+    }
+   ],
+   "serviceStats": {}
+  },
+  {
+   "traceID": "54c13ffdf5dbc353f82b8493c0576953",
+   "rootServiceName": "<root span not yet received>",
+   "startTimeUnixNano": "1790171955000000000",
+   "durationMs": 2180,
+   "spanSets": [
+    {
+     "spans": [
+      {
+       "spanID": "e1",
+       "name": "POST",
+       "startTimeUnixNano": "1790171955800000000",
+       "durationNanos": "30001000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "enrichment-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "stringValue": "nil"
+         }
+        },
+        {
+         "key": "net.peer.name",
+         "value": {
+          "stringValue": "provider-x.example.com"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "The operation was aborted due to timeout"
+         }
+        }
+       ]
+      }
+     ],
+     "matched": 1
+    }
+   ],
+   "serviceStats": {}
+  },
+  {
+   "traceID": "6705bd940faa23c5b097e8bf4f980931",
+   "rootServiceName": "<root span not yet received>",
+   "startTimeUnixNano": "1790296584000000000",
+   "durationMs": 2180,
+   "spanSets": [
+    {
+     "spans": [
+      {
+       "spanID": "e2",
+       "name": "POST",
+       "startTimeUnixNano": "1790296584800000000",
+       "durationNanos": "30001000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "enrichment-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "stringValue": "nil"
+         }
+        },
+        {
+         "key": "net.peer.name",
+         "value": {
+          "stringValue": "provider-x.example.com"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "The operation was aborted due to timeout"
+         }
+        }
+       ]
+      }
+     ],
+     "matched": 1
+    }
+   ],
+   "serviceStats": {}
+  }
+ ],
+ "metrics": {
+  "completedJobs": 384,
+  "totalJobs": 384
+ }
+}

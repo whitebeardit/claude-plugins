@@ -1,0 +1,1004 @@
+{
+ "traces": [
+  {
+   "traceID": "5b1e0c2a9f7d4e3b8a6c1d2e3f4a5b6c",
+   "rootServiceName": "api",
+   "startTimeUnixNano": "1789650604000000000",
+   "durationMs": 2180,
+   "spanSets": [
+    {
+     "spans": [
+      {
+       "spanID": "a1",
+       "name": "POST /payment",
+       "startTimeUnixNano": "1789650604000000000",
+       "durationNanos": "2180000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "api"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "500"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "a2",
+       "name": "POST payment-service/charge",
+       "startTimeUnixNano": "1789650604005000000",
+       "durationNanos": "2165000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "api"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "502"
+         }
+        },
+        {
+         "key": "peer.service",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "b1",
+       "name": "POST /charge",
+       "startTimeUnixNano": "1789650604008000000",
+       "durationNanos": "2157000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "502"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "upstream customer-service returned 503"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "b2",
+       "name": "GET customer-service/customers/7",
+       "startTimeUnixNano": "1789650604020000000",
+       "durationNanos": "2130000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "503"
+         }
+        },
+        {
+         "key": "peer.service",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "c1",
+       "name": "GET /customers/7",
+       "startTimeUnixNano": "1789650604024000000",
+       "durationNanos": "2121000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "503"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "database unavailable"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "c2",
+       "name": "SELECT customer",
+       "startTimeUnixNano": "1789650604030000000",
+       "durationNanos": "2002000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "db.system",
+         "value": {
+          "stringValue": "postgresql"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "connection timeout after 2000ms (pool 10/10, customer 7)"
+         }
+        }
+       ]
+      }
+     ],
+     "matched": 6
+    }
+   ],
+   "serviceStats": {}
+  },
+  {
+   "traceID": "6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d",
+   "rootServiceName": "api",
+   "startTimeUnixNano": "1789651547000000000",
+   "durationMs": 2180,
+   "spanSets": [
+    {
+     "spans": [
+      {
+       "spanID": "a1",
+       "name": "POST /payment",
+       "startTimeUnixNano": "1789651547000000000",
+       "durationNanos": "2180000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "api"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "500"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "a2",
+       "name": "POST payment-service/charge",
+       "startTimeUnixNano": "1789651547005000000",
+       "durationNanos": "2165000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "api"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "502"
+         }
+        },
+        {
+         "key": "peer.service",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "b1",
+       "name": "POST /charge",
+       "startTimeUnixNano": "1789651547008000000",
+       "durationNanos": "2157000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "502"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "upstream customer-service returned 503"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "b2",
+       "name": "GET customer-service/customers/19",
+       "startTimeUnixNano": "1789651547020000000",
+       "durationNanos": "2130000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "503"
+         }
+        },
+        {
+         "key": "peer.service",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "c1",
+       "name": "GET /customers/19",
+       "startTimeUnixNano": "1789651547024000000",
+       "durationNanos": "2121000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "503"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "database unavailable"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "c2",
+       "name": "SELECT customer",
+       "startTimeUnixNano": "1789651547030000000",
+       "durationNanos": "2002000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "db.system",
+         "value": {
+          "stringValue": "postgresql"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "connection timeout after 2000ms (pool 10/10, customer 19)"
+         }
+        }
+       ]
+      }
+     ],
+     "matched": 6
+    }
+   ],
+   "serviceStats": {}
+  },
+  {
+   "traceID": "7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e",
+   "rootServiceName": "api",
+   "startTimeUnixNano": "1789652412000000000",
+   "durationMs": 2180,
+   "spanSets": [
+    {
+     "spans": [
+      {
+       "spanID": "a1",
+       "name": "POST /payment",
+       "startTimeUnixNano": "1789652412000000000",
+       "durationNanos": "2180000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "api"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "500"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "a2",
+       "name": "POST payment-service/charge",
+       "startTimeUnixNano": "1789652412005000000",
+       "durationNanos": "2165000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "api"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "502"
+         }
+        },
+        {
+         "key": "peer.service",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "b1",
+       "name": "POST /charge",
+       "startTimeUnixNano": "1789652412008000000",
+       "durationNanos": "2157000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "502"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "upstream customer-service returned 503"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "b2",
+       "name": "GET customer-service/customers/33",
+       "startTimeUnixNano": "1789652412020000000",
+       "durationNanos": "2130000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "503"
+         }
+        },
+        {
+         "key": "peer.service",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "c1",
+       "name": "GET /customers/33",
+       "startTimeUnixNano": "1789652412024000000",
+       "durationNanos": "2121000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "503"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "database unavailable"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "c2",
+       "name": "SELECT customer",
+       "startTimeUnixNano": "1789652412030000000",
+       "durationNanos": "2002000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "db.system",
+         "value": {
+          "stringValue": "postgresql"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "connection timeout after 2000ms (pool 10/10, customer 33)"
+         }
+        }
+       ]
+      }
+     ],
+     "matched": 6
+    }
+   ],
+   "serviceStats": {}
+  },
+  {
+   "traceID": "2aa803b2e40c97a2490d754a465fe9de",
+   "rootServiceName": "api",
+   "startTimeUnixNano": "1789653751000000000",
+   "durationMs": 2180,
+   "spanSets": [
+    {
+     "spans": [
+      {
+       "spanID": "a1",
+       "name": "POST /payment",
+       "startTimeUnixNano": "1789653751000000000",
+       "durationNanos": "2180000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "api"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "500"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "a2",
+       "name": "POST payment-service/charge",
+       "startTimeUnixNano": "1789653751005000000",
+       "durationNanos": "2165000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "api"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "502"
+         }
+        },
+        {
+         "key": "peer.service",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "b1",
+       "name": "POST /charge",
+       "startTimeUnixNano": "1789653751008000000",
+       "durationNanos": "2157000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "502"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "upstream customer-service returned 503"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "b2",
+       "name": "GET customer-service/customers/42",
+       "startTimeUnixNano": "1789653751020000000",
+       "durationNanos": "2130000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "503"
+         }
+        },
+        {
+         "key": "peer.service",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "c1",
+       "name": "GET /customers/42",
+       "startTimeUnixNano": "1789653751024000000",
+       "durationNanos": "2121000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "503"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "database unavailable"
+         }
+        }
+       ]
+      },
+      {
+       "spanID": "c2",
+       "name": "SELECT customer",
+       "startTimeUnixNano": "1789653751030000000",
+       "durationNanos": "2002000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "client"
+         }
+        },
+        {
+         "key": "db.system",
+         "value": {
+          "stringValue": "postgresql"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "connection timeout after 2000ms (pool 10/10, customer 42)"
+         }
+        }
+       ]
+      }
+     ],
+     "matched": 6
+    }
+   ],
+   "serviceStats": {}
+  },
+  {
+   "traceID": "0e1f2a3b4c5d6e7f8091a2b3c4d5e6f7",
+   "rootServiceName": "inventory-service",
+   "startTimeUnixNano": "1789653069000000000",
+   "durationMs": 2180,
+   "spanSets": [
+    {
+     "spans": [
+      {
+       "spanID": "d1",
+       "name": "GET /stock/88123",
+       "startTimeUnixNano": "1789653069000000000",
+       "durationNanos": "14000000",
+       "attributes": [
+        {
+         "key": "status",
+         "value": {
+          "stringValue": "error"
+         }
+        },
+        {
+         "key": "service.name",
+         "value": {
+          "stringValue": "inventory-service"
+         }
+        },
+        {
+         "key": "kind",
+         "value": {
+          "stringValue": "server"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "500"
+         }
+        },
+        {
+         "key": "statusMessage",
+         "value": {
+          "stringValue": "sku 88123 not found in warehouse 3"
+         }
+        }
+       ]
+      }
+     ],
+     "matched": 1
+    }
+   ],
+   "serviceStats": {}
+  }
+ ],
+ "metrics": {
+  "completedJobs": 12,
+  "totalJobs": 12
+ }
+}
