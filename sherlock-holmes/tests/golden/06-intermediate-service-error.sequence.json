@@ -1,0 +1,150 @@
+{
+ "activations": [
+  {
+   "from": 140,
+   "participant": "api",
+   "to": 410,
+   "type": "backend"
+  },
+  {
+   "from": 164,
+   "participant": "gateway-bff",
+   "to": 396,
+   "type": "backend"
+  },
+  {
+   "from": 208,
+   "participant": "pricing-service",
+   "to": 352,
+   "type": "backend"
+  },
+  {
+   "from": 252,
+   "participant": "tax-service",
+   "to": 308,
+   "type": "backend"
+  }
+ ],
+ "cards": [
+  {
+   "dot": "cyan",
+   "items": [
+    "root span: api GET /quotes/5",
+    "7 spans · 5 with error status · 95 ms",
+    "window 14:02:31.000 → 14:02:31.095 (as recorded)"
+   ],
+   "title": "FACT · trace"
+  },
+  {
+   "dot": "orange",
+   "items": [
+    "pricing-service · GET /price",
+    "14:02:31.010 → 14:02:31.082 · 72 ms",
+    "java.lang.NullPointerException"
+   ],
+   "title": "FACT · first span to fail"
+  }
+ ],
+ "diagram_type": "sequence",
+ "messages": [
+  {
+   "from": "api",
+   "label": "GET gateway-bff/quotes/5  14:02:31.003",
+   "to": "gateway-bff",
+   "variant": "emphasis",
+   "y": 170
+  },
+  {
+   "from": "gateway-bff",
+   "label": "GET pricing-service/price  14:02:31.008",
+   "to": "pricing-service",
+   "variant": "emphasis",
+   "y": 214
+  },
+  {
+   "from": "pricing-service",
+   "label": "GET tax-service/tax/rate  14:02:31.015",
+   "to": "tax-service",
+   "variant": "default",
+   "y": 258
+  },
+  {
+   "from": "tax-service",
+   "label": "200  14:02:31.030  15 ms",
+   "to": "pricing-service",
+   "variant": "return",
+   "y": 302
+  },
+  {
+   "from": "pricing-service",
+   "label": "500  14:02:31.084  76 ms  java.lang.NullPointerException",
+   "note": "[error] 14:02:31.079 NullPointerException at PriceCalculator.java:88",
+   "to": "gateway-bff",
+   "variant": "return",
+   "y": 346
+  },
+  {
+   "from": "gateway-bff",
+   "label": "500  14:02:31.090  87 ms  upstream pricing-service 500",
+   "note": "[error] 14:02:31.086 upstream pricing-service 500",
+   "to": "api",
+   "variant": "return",
+   "y": 390
+  }
+ ],
+ "meta": {
+  "animation": "trace",
+  "column_fit": "spread",
+  "quality_profile": "showcase",
+  "subtitle": "trace 84c8614b9b6df5d3565fbdb3f2174e95 · evidence only: spans as recorded, no causal claim",
+  "title": "Trace 84c8614b9b6df5d3… · api GET /quotes/5",
+  "viewBox": [
+   900,
+   690
+  ],
+  "views": [
+   {
+    "focus": [
+     "api",
+     "gateway-bff",
+     "pricing-service",
+     "tax-service"
+    ],
+    "id": "request-path",
+    "label": "Request path",
+    "note": "Calls as recorded in spans. The caller of the root span is not in the trace."
+   },
+   {
+    "focus": [
+     "pricing-service"
+    ],
+    "id": "first-span-to-fail",
+    "label": "First span to fail",
+    "note": "Earliest span with error status. Being first is a fact; being the cause is the investigator's call."
+   }
+  ]
+ },
+ "participants": [
+  {
+   "id": "api",
+   "label": "api",
+   "type": "backend"
+  },
+  {
+   "id": "gateway-bff",
+   "label": "gateway-bff",
+   "type": "backend"
+  },
+  {
+   "id": "pricing-service",
+   "label": "pricing-service",
+   "type": "backend"
+  },
+  {
+   "id": "tax-service",
+   "label": "tax-service",
+   "type": "backend"
+  }
+ ],
+ "schema_version": 1
+}

@@ -1,0 +1,123 @@
+{
+ "activations": [
+  {
+   "from": 140,
+   "participant": "checkout-service",
+   "to": 322,
+   "type": "backend"
+  },
+  {
+   "from": 164,
+   "participant": "payment-service",
+   "to": 308,
+   "type": "backend"
+  },
+  {
+   "from": 208,
+   "participant": "gateway-adapter",
+   "to": 264,
+   "type": "backend"
+  }
+ ],
+ "cards": [
+  {
+   "dot": "cyan",
+   "items": [
+    "root span: checkout-service POST /checkout",
+    "5 spans · 1 with error status · 150 ms",
+    "window 14:02:31.000 → 14:02:31.150 (as recorded)"
+   ],
+   "title": "FACT · trace"
+  },
+  {
+   "dot": "orange",
+   "items": [
+    "payment-service · POST /charge",
+    "14:02:31.008 → 14:02:31.130 · 122 ms",
+    "charge declined by gateway (code 51)"
+   ],
+   "title": "FACT · first span to fail"
+  }
+ ],
+ "diagram_type": "sequence",
+ "messages": [
+  {
+   "from": "checkout-service",
+   "label": "POST payment-service/charge  14:02:31.005",
+   "to": "payment-service",
+   "variant": "default",
+   "y": 170
+  },
+  {
+   "from": "payment-service",
+   "label": "POST gateway-adapter/authorize  14:02:31.015",
+   "to": "gateway-adapter",
+   "variant": "default",
+   "y": 214
+  },
+  {
+   "from": "gateway-adapter",
+   "label": "200  14:02:31.110  95 ms",
+   "to": "payment-service",
+   "variant": "return",
+   "y": 258
+  },
+  {
+   "from": "payment-service",
+   "label": "ERROR  14:02:31.135  130 ms",
+   "note": "[error] 14:02:31.120 charge declined by gateway (code 51)",
+   "to": "checkout-service",
+   "variant": "return",
+   "y": 302
+  }
+ ],
+ "meta": {
+  "animation": "trace",
+  "column_fit": "spread",
+  "quality_profile": "showcase",
+  "subtitle": "trace 59d23822d96610672a554274570b5bd7 · evidence only: spans as recorded, no causal claim",
+  "title": "Trace 59d23822d9661067… · checkout-service POST /checkout",
+  "viewBox": [
+   900,
+   602
+  ],
+  "views": [
+   {
+    "focus": [
+     "checkout-service",
+     "payment-service",
+     "gateway-adapter"
+    ],
+    "id": "request-path",
+    "label": "Request path",
+    "note": "Calls as recorded in spans. The caller of the root span is not in the trace."
+   },
+   {
+    "focus": [
+     "payment-service"
+    ],
+    "id": "first-span-to-fail",
+    "label": "First span to fail",
+    "note": "Earliest span with error status. Being first is a fact; being the cause is the investigator's call."
+   }
+  ]
+ },
+ "participants": [
+  {
+   "id": "checkout-service",
+   "label": "checkout-service",
+   "type": "backend"
+  },
+  {
+   "id": "payment-service",
+   "label": "payment-service",
+   "type": "backend"
+  },
+  {
+   "id": "gateway-adapter",
+   "label": "gateway-adapter",
+   "type": "backend"
+  }
+ ],
+ "schema_version": 1
+}

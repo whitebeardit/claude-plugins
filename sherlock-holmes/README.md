@@ -64,9 +64,54 @@ Three files do the work:
 
 Why Tempo first? A trace ID carries no timestamp. Looking a trace up by ID in Tempo is indexed and cheap, and it returns the exact start and end, so the Loki query can be tight instead of scanning hours of every stream. The agent still *reads* logs first; only the collection order is Tempo-first. When Tempo does not have the trace (unsampled, unexported, expired), the collector says so and falls back to a lookback window, or to `--around` / `--start` `--end` if you know roughly when it happened.
 
+## See the trace as a diagram
+
+When Tempo returns the trace, the investigation also draws it: one self-contained HTML file with the
+services as participants, every outbound span as a call and its return (recorded start, end, status
+and duration), SERVER spans as activations, and the warn/error log lines the collector joined to a
+span as notes on the matching message. Open it in a browser and send it around; nothing else is
+needed to view it. `/` finds a participant, `R` traces a route between two of them, `P` plays the
+guided chapters ("Request path", "First span to fail"), and Export gives PNG or SVG.
+
+It is **evidence only**. A deterministic script builds it from the spans as recorded; the agent
+never authors it, no cause is drawn, and the "first span to fail" chapter says so in its own note:
+being first is a fact, being the cause is the investigator's call. Labels come from an allowlist of
+span attributes (operation, method, route, status code, peer name, `db.system`), so `db.statement`,
+URLs with ids and headers never reach the file. The report carries a `**Diagram:**` line with the
+path, or the one-line reason when none was generated.
+
+Rendering uses [archify](https://github.com/tt-a1i/archify) (MIT), an optional dependency: Node 18+
+and the archify skill, installed once with
+
+```bash
+npx skills add tt-a1i/archify -g        # or: export ARCHIFY_BIN=/path/to/archify/bin/archify.mjs
+```
+
+Without it the investigation is exactly the same, minus the file. `Run the trace-debug doctor`
+reports `diagram: available` or the reason it is not. The archify update check is disabled for
+every call: the plugin still talks only to Loki and Tempo.
+
+To draw a trace without investigating it - to look at it, share it or export it, with no diagnosis -
+use the lighter skill, which runs no agent:
+
+```
+/sherlock-holmes:trace-diagram 4bf92f3577b34da6a3ce929d0e0e4736
+```
+
 ## Quick setup
 
-Six steps from nothing to a real investigation. Steps 1 and 2 need no Loki and no Tempo.
+Six steps from nothing to a real investigation, plus an optional seventh for the diagram. Steps 1 and 2 need no Loki and no Tempo.
+
+Or let the plugin guide you: after step 1, run
+
+```
+/sherlock-holmes:setup
+```
+
+It does steps 3 to 7 in one conversation - checks access with the doctor, finds the datasource UIDs,
+proposes the selector from the labels your Loki really has, hands you the exact `/config` values, and
+offers to install archify (only after you say yes). The two things it cannot do for you are export the
+token and fill `/config`: those stay yours, by design of the plugin system.
 Requirements: Claude Code and Python 3.8+.
 
 **1 — Install.** In Claude Code:
@@ -125,6 +170,18 @@ export LOKI_SELECTOR='{namespace="your-namespace"}'
 ```
 /sherlock-holmes:trace-debug <trace-id>
 ```
+
+**7 — Optional: the diagram.** Install [archify](https://github.com/tt-a1i/archify) once (Node 18+;
+this also installs its `archify-review` companion skill, which the plugin does not use):
+
+```bash
+npx skills add tt-a1i/archify -g
+```
+
+Ask for the doctor again: it now says `"diagram": {"available": true, ...}` with the path it found
+(`~/.claude/skills/archify/bin/archify.mjs`). From then on every investigation with a trace in Tempo
+also delivers the HTML described in [See the trace as a diagram](#see-the-trace-as-a-diagram). Skip
+this step and nothing else changes.
 
 No Grafana in front of your Loki and Tempo? [Direct URLs work too](#configure). Trace found but
 zero log lines? [Usually the selector or the trace-id field](#when-the-first-run-doesnt-line-up).
@@ -262,22 +319,29 @@ The collector does not need the Grafana MCP server. If you already run it, the a
 ## Test
 
 ```bash
-python3 -m unittest discover -s tests -v                # collector, 20 tests, no network
+python3 -m unittest discover -s tests -v                # collector + diagram, no network
+ARCHIFY_BIN=/path/to/archify.mjs python3 skills/trace-debug/scripts/trace-diagram.py \
+  --input /tmp/trace-debug/2aa803b2e40c97a2490d754a465fe9de.json   # after the collector line below
 python3 skills/trace-debug/scripts/collect-trace.py \
   --trace-id 2aa803b2e40c97a2490d754a465fe9de --fixture evals/fixtures/01-downstream-503
 claude plugin validate .
-claude plugin eval . --scaffold --allow-tools "Bash(python3 *collect-trace.py*)" --ablation none --judge-model sonnet
+claude plugin eval . --scaffold --allow-tools "Bash(python3 *collect-trace.py*)" --allow-tools "Bash(python3 *trace-diagram.py*)" --ablation none --judge-model sonnet
 ```
 
 See `evals/README.md` for the sandbox prerequisites (bubblewrap needs unprivileged user namespaces; Ubuntu 24.04 restricts them by default).
 
 `evals/` has six offline cases mirroring the classic failure shapes: downstream 503 chain, DB timeout with retries and no trace in Tempo, error visible only in spans, contradictory logs with clock skew, incomplete trace, error in an intermediate service. Each case seeds recorded Loki/Tempo responses into the workspace and grades the report with rubrics derived from `expected.json`. All fixture data is synthetic.
 
+`tests/golden/` holds the diagram specification for each fixture; `UPDATE_GOLDEN=1` regenerates them
+after an intended change, and the CI validates them against a pinned archify commit so an upstream
+schema change fails a pull request, not a user's first run.
+
 To record fixtures from a real incident: `collect-trace.py --trace-id <id> --dump-raw ./some-dir`. Review the dump for personal data before committing it.
 
 ## Security
 
-- Read-only by construction: the collector only issues HTTP GET; the agent has `Bash` (pre-approved for the collector only) and `Read`.
+- Read-only by construction: the collector only issues HTTP GET; the agent has `Bash` (pre-approved for the collector and the diagram script only) and `Read`.
+- The diagram renderer never reaches the network (archify's update check is disabled per call) and its HTML only carries allowlisted span attributes.
 - Credentials come from the environment and are never printed, not even in error messages.
 - Trace ids are validated (16 or 32 hex chars, or a traceparent) before touching a query, which is also what prevents LogQL injection.
 - The collector refuses to run without a Loki selector.
@@ -285,6 +349,7 @@ To record fixtures from a real incident: `collect-trace.py --trace-id <id> --dum
 ## Roadmap
 
 - V1 (this): Loki + Tempo, timeline, first anomaly, causal chain, confidence, gaps, offline evals.
+- 0.3: the trace as an interactive sequence diagram (archify), evidence only.
 - V2: source code as complementary evidence (stack trace -> file:line), TraceQL search when no trace id is known.
 - V3: metrics around the window (error rate, saturation, pool usage).
 - V4: deploy correlation.

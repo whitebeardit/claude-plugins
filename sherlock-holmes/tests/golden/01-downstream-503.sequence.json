@@ -1,0 +1,147 @@
+{
+ "activations": [
+  {
+   "from": 140,
+   "participant": "api",
+   "to": 410,
+   "type": "backend"
+  },
+  {
+   "from": 164,
+   "participant": "payment-service",
+   "to": 396,
+   "type": "backend"
+  },
+  {
+   "from": 208,
+   "participant": "customer-service",
+   "to": 352,
+   "type": "backend"
+  }
+ ],
+ "cards": [
+  {
+   "dot": "cyan",
+   "items": [
+    "root span: api POST /payment",
+    "6 spans · 6 with error status · 2180 ms",
+    "window 14:02:31.000 → 14:02:33.180 (as recorded)"
+   ],
+   "title": "FACT · trace"
+  },
+  {
+   "dot": "orange",
+   "items": [
+    "customer-service · SELECT customer",
+    "14:02:31.030 → 14:02:33.032 · 2002 ms",
+    "connection timeout after 2000ms"
+   ],
+   "title": "FACT · first span to fail"
+  }
+ ],
+ "diagram_type": "sequence",
+ "messages": [
+  {
+   "from": "api",
+   "label": "POST payment-service/charge  14:02:31.005",
+   "to": "payment-service",
+   "variant": "emphasis",
+   "y": 170
+  },
+  {
+   "from": "payment-service",
+   "label": "GET customer-service/customers/42  14:02:31.020",
+   "to": "customer-service",
+   "variant": "emphasis",
+   "y": 214
+  },
+  {
+   "from": "customer-service",
+   "label": "SELECT customer  14:02:31.030",
+   "to": "customers-db",
+   "variant": "emphasis",
+   "y": 258
+  },
+  {
+   "from": "customers-db",
+   "label": "ERROR  14:02:33.032  2002 ms  connection timeout after 2000ms",
+   "note": "[error] 14:02:33.031 PostgreSQL connection timeout after 2000ms",
+   "to": "customer-service",
+   "variant": "return",
+   "y": 302
+  },
+  {
+   "from": "customer-service",
+   "label": "503  14:02:33.150  2130 ms  database unavailable",
+   "note": "[warn] 14:02:33.144 HTTP 503",
+   "to": "payment-service",
+   "variant": "return",
+   "y": 346
+  },
+  {
+   "from": "payment-service",
+   "label": "502  14:02:33.170  2165 ms  upstream customer-service returned 503",
+   "note": "[error] 14:02:33.160 upstream customer-service returned 503",
+   "to": "api",
+   "variant": "return",
+   "y": 390
+  }
+ ],
+ "meta": {
+  "animation": "trace",
+  "column_fit": "spread",
+  "quality_profile": "showcase",
+  "subtitle": "trace 2aa803b2e40c97a2490d754a465fe9de · evidence only: spans as recorded, no causal claim",
+  "title": "Trace 2aa803b2e40c97a2… · api POST /payment",
+  "viewBox": [
+   900,
+   690
+  ],
+  "views": [
+   {
+    "focus": [
+     "api",
+     "payment-service",
+     "customer-service",
+     "customers-db"
+    ],
+    "id": "request-path",
+    "label": "Request path",
+    "note": "Calls as recorded in spans. The caller of the root span is not in the trace."
+   },
+   {
+    "focus": [
+     "customer-service",
+     "customers-db"
+    ],
+    "id": "first-span-to-fail",
+    "label": "First span to fail",
+    "note": "Earliest span with error status. Being first is a fact; being the cause is the investigator's call."
+   }
+  ]
+ },
+ "participants": [
+  {
+   "id": "api",
+   "label": "api",
+   "type": "backend"
+  },
+  {
+   "id": "payment-service",
+   "label": "payment-service",
+   "type": "backend"
+  },
+  {
+   "id": "customer-service",
+   "label": "customer-service",
+   "type": "backend"
+  },
+  {
+   "id": "customers-db",
+   "label": "customers-db",
+   "sublabel": "postgresql",
+   "type": "database"
+  }
+ ],
+ "schema_version": 1
+}

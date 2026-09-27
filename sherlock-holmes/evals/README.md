@@ -7,8 +7,8 @@ each case is in `fixtures/<case>/expected.json`; the graders encode it as PASS/F
 Run from the plugin root (Bash must be granted, the collector is a Python script):
 
 ```bash
-claude plugin eval . --scaffold --allow-tools "Bash(python3 *collect-trace.py*)" --ablation none
-claude plugin eval . --scaffold --allow-tools "Bash(python3 *collect-trace.py*)" --ablation none --judge-model sonnet --case 04-* --runs 3
+claude plugin eval . --scaffold --allow-tools "Bash(python3 *collect-trace.py*)" --allow-tools "Bash(python3 *trace-diagram.py*)" --ablation none
+claude plugin eval . --scaffold --allow-tools "Bash(python3 *collect-trace.py*)" --allow-tools "Bash(python3 *trace-diagram.py*)" --ablation none --judge-model sonnet --case 04-* --runs 3
 ```
 
 Requirements: Claude Code with `claude plugin eval`, and an OS sandbox backend for Bash

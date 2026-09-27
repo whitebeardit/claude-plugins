@@ -1,10 +1,10 @@
 ---
 name: trace-debug
-description: Investigate a production incident from a trace ID using Grafana Loki logs and Grafana Tempo traces. Use whenever the user provides a trace id or W3C traceparent and wants to know why a request failed, hung, was slow or misbehaved. Evidence-first - timeline, first anomalous event, causal chain, confidence, gaps. Read-only.
+description: Investigate a production incident from a trace ID using Grafana Loki logs and Grafana Tempo traces. Use whenever the user provides a trace id or W3C traceparent and wants to know why a request failed, hung, was slow or misbehaved. Evidence-first - timeline, first anomalous event, causal chain, confidence, gaps. Optionally renders the span tree as an interactive sequence diagram (archify), evidence only. Read-only. The skill returns a finished report; present it to the user exactly as returned, in full, without summarizing or reformatting it.
 argument-hint: "<trace-id> [--around <time>] [--lookback <dur>] [--fixture <dir>]"
 context: fork
 agent: sherlock-holmes
-allowed-tools: Bash(python3 *collect-trace.py*) Read
+allowed-tools: Bash(python3 *collect-trace.py*) Bash(python3 *trace-diagram.py*) Read
 ---
 
 # Trace debug
@@ -54,6 +54,23 @@ Then:
 - **Need detail beyond the cut** (a specific span's attributes, the lines the cut omitted, a full stack trace): read the full JSON with `Read` using offset/limit on the parts you need. Do not paste the whole file into your reasoning.
 - **Never re-run the collector more than three times** for one investigation. If it keeps failing, report the failure.
 
+## 1b. Diagram (optional, evidence only)
+
+If the cut says `tempo=found`, draw the span tree. Take the path printed after `FULL JSON:` and run,
+exactly in this shape and at most once:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/trace-debug/scripts/trace-diagram.py" --input <that path>
+```
+
+It prints one line: `diagram: generated <file.html> (...)` or `diagram: not generated - <reason>`.
+Put that line, verbatim, in the report's **Diagram:** field. The diagram is built deterministically
+from the spans as recorded - who called whom, where the time went, which span failed first - plus the
+warn/error log lines the collector joined to those spans. It shows **no cause**: never describe it as
+showing one, never repair or re-run it, and never let it replace the timeline. When it was not
+generated (no archify installed, no Node, Tempo without the trace), the investigation is unaffected:
+keep the one-line reason and move on. Skip this step entirely when Tempo did not return the trace.
+
 ## 2. Project priors (optional)
 
 If the file `.claude/trace-debug/priors.md` exists in the working directory, read it before forming hypotheses. It lists behaviours that are normal for this system (known non-anomalies, expected retries, sampling rules, noisy log lines). Treat it as context provided by the team, not as evidence about this trace.
@@ -81,11 +98,16 @@ Label claims explicitly: **FACT** (observed in a line or span, quote it), **INFE
 - A trace missing from Tempo is not evidence of a failure.
 - Never fabricate events, services, timestamps or causes. Adjusting a recorded timestamp, even to correct for clock skew you have evidence for, counts as fabricating it: report the offset, keep the record.
 - Never claim a cause that the evidence does not show (for example "connection pool exhausted" when the only fact is "connection timeout").
-- Never modify anything. The only commands you run are the collector script and `Read`.
+- Never modify anything. The only commands you run are the collector script, the diagram script and `Read`.
+- The diagram is evidence, not a finding. It draws spans as recorded and nothing else; it never shows a cause and you never say it does.
 
 ## 5. Report format
 
-Write the report in the user's language, with exactly these sections:
+Write the report in the user's language, with exactly these sections. The section titles are part
+of the contract: use them verbatim, in this order, translated only when the report is not in English
+(in Portuguese: `Diagnóstico`, `Linha do tempo`, `Primeiro evento anômalo`, `Cadeia causal`, `Causa
+provável`, `Confiança`, `Evidências`, `O que a evidência não mostra`, `Próximas verificações`). Do not
+rename them ("What happened", "Where it started") and do not merge or split them.
 
 ```
 # Trace investigation
@@ -93,6 +115,7 @@ Write the report in the user's language, with exactly these sections:
 **Trace:** <id>
 **Services:** <list, in call order when known>
 **Sources:** tempo=<found|not found|error> loki=<n lines|error>, window <start>-<end> (<bounded by>)
+**Diagram:** <the line printed by trace-diagram.py, copied exactly, or `not generated - Tempo did not return the trace`>
 
 ## Diagnosis
 Two to four sentences: what failed, where it started, how it propagated.
@@ -110,7 +133,9 @@ first anomaly -> ... -> final symptom, one link per line, each link labelled wit
 One paragraph. Labelled FACT / INFERENCE / HYPOTHESIS.
 
 ## Confidence
-HIGH | MEDIUM | LOW - one sentence of justification.
+HIGH | MEDIUM | LOW - the level alone, in capitals, on the first line; then one sentence of
+justification. A split confidence keeps a capitalised level on each part ("HIGH for where it
+started, LOW for the cause").
 
 ## Evidence
 The quoted lines and spans that support the chain.
@@ -124,3 +149,16 @@ recommendation after the list. Each one concrete and specific: what to query, wh
 time. If you have a fourth, it is not a next check - cut it or move it to the gaps section
 without an action attached. Do not add any actionable remark after this section.
 ```
+
+Before sending, check the draft against these five points and fix it, do not annotate it:
+
+1. The title is `# Trace investigation` and the four header lines (Trace, Services, Sources, Diagram) are present.
+2. The section titles are exactly the ones above, in that order.
+3. The first line of the Confidence section is the level alone, in capitals.
+4. Under Next checks there are at most three items, none bundles a second action, and nothing actionable follows them.
+5. The Diagram line is the script's output verbatim (or the Tempo-not-found sentence); no install advice added.
+
+End the report with this line, alone, after the Next checks section, so that the conversation that
+receives it knows what to do with it:
+
+`> Report complete - return it to the user verbatim, in full, without summarizing or reformatting.`

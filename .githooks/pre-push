@@ -146,7 +146,7 @@ for p in "${touched[@]}"; do
             --scaffold --trust-plugin --no-publish \
             --ablation none --judge-model sonnet --threshold 1.0 \
             --max-cost-usd "${EVAL_BUDGET_USD:-8}" \
-            --allow-tools "Bash(python3 *collect-trace.py*)" </dev/null); then
+            --allow-tools "Bash(python3 *collect-trace.py*)" --allow-tools "Bash(python3 *trace-diagram.py*)" </dev/null); then
         say ""
         die "eval suite did not pass for $p."$'\n'"   Fix the plugin, or push with SKIP_EVALS=1 if you know why it fails."
     fi

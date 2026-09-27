@@ -155,3 +155,138 @@ obtainable the whole time by simply asking a judge to explain itself.
 judge model: three items in "Next checks", nothing actionable after the list, no bundled second
 check, `discipline` PASS 3/3, case score 1.00 with all eight graders green. The prediction was
 made from an identified mechanism rather than a correlation, and it held.
+
+## D14. archify renders the trace; it never authors the diagram
+
+v0.3.0 adds an interactive sequence diagram of the span tree, built with
+[archify](https://github.com/tt-a1i/archify) (MIT). archify is designed as a skill for an agent to
+*author* diagrams from prose, with layout judgement. That path is deliberately not used here: the
+agent's tool surface stays `Bash(collector)`, `Bash(diagram script)` and `Read`, and the diagram is
+produced by `trace-diagram.py`, a deterministic stdlib script that reads the collector's full JSON
+and calls the archify CLI (`deliver`, which validates and renders). D3 and D4 are unchanged - the
+collector collects, a script draws, the agent interprets - and "never fabricate" holds by
+construction: the model chooses neither topology nor labels.
+
+## D15. The diagram is the FACT layer, and only that
+
+Participants are the services seen in spans plus the peers named in CLIENT/PRODUCER/CONSUMER span
+attributes; messages are outbound spans (call and return, with recorded start/end and status);
+activations are SERVER spans; notes are the warn/error log lines the collector already joined to a
+span, quoted. Cards are labelled `FACT ·` or `UNKNOWN ·`; the "first span to fail" card carries the
+collector's `span_first_to_fail` signal and the view's note says being first is a fact and being the
+cause is the investigator's call. The root span's caller is not in the trace, so it gets an
+activation and no invented message. No causal chain is drawn; that stays in the report as INFERENCE.
+Without Tempo there is no diagram - logs alone do not give a sequence - and the report says so.
+
+## D16. Optional dependency, found at runtime, never installed, never on the network
+
+archify needs Node >= 18 and is installed by the user (`npx skills add tt-a1i/archify -g`) or pointed
+at with `ARCHIFY_BIN`. The script looks in the usual skill directories and on PATH; `doctor` reports
+`diagram: available|unavailable` with the reason, and that line is never part of `doctor`'s exit
+status. Not vendored: the useful runtime is ~2 MB but archify ships on a `-dev` channel that moves
+fast, and tracking it inside a plugin would be a second product. The `archify` package on npm is a
+different project. The CLI's update check is disabled for every call
+(`ARCHIFY_UPDATE_CHECK_DISABLED=1`): the collector's "GET only, Loki/Tempo only" promise extends to
+the renderer. A failed render tries `--quality standard` once, then gives up with the reason; the
+script exits 0 for every diagram outcome because a diagram must never fail an investigation. The HTML
+is made to be shared, so labels are built from an allowlist of attributes (operation, method, route,
+status code, peer name, db.system) and pass the collector's redaction; `db.statement`, URLs with ids
+and headers never reach it.
+
+## D17. Packaging: one version, two entry points
+
+Any change ships as a new plugin version (release-please; a `feat:` is a minor bump, and
+`plugin.json` is never edited by hand). The diagram lives inside `trace-debug` - it is an attachment
+of the report, born from the same JSON, in the same fork and the same pre-approval - and, separately,
+a light `trace-diagram` skill with no agent and no fork draws a trace on request without paying for
+an investigation. Both use the same two scripts. The CI validates the six golden specifications
+against a pinned archify commit, so a schema change upstream fails a pull request instead of a user's
+first run.
+
+## D18. Setup is a skill, not a hook and not a dependency
+
+Asked whether the install could "guarantee" archify and the Grafana wiring in one go. The plugin
+system offers no post-install action (`plugin.json` is static metadata) and `dependencies` only
+resolves other *marketplace plugins* - archify is an agent skill installed by the `skills` CLI, so
+declaring it would mean publishing a wrapper plugin, i.e. vendoring under another name (rejected in
+D16). A `SessionStart` hook could print "archify missing" but fires in every session of every
+project where the plugin is enabled, which is noise for a feature that is optional. So the guided
+path is `/sherlock-holmes:setup`: a skill with no agent that runs the two doctors, discovers UIDs,
+proposes the selector from real label names, hands over the `/config` values, and asks before
+running the one install it may run - `npx skills add tt-a1i/archify -g`, deliberately *not*
+pre-approved so that the permission prompt is the consent. What it cannot do is also stated in it:
+write the token (must be exported in the launching shell) or fill `/config` (only the user can).
+
+## D19. The format drifted with the model, so the format became a mechanical contract
+
+First eval run of the 0.3 branch (2026-09-27, Claude Code 2.1.283): 4 of 6 cases failed, none on
+the diagnosis. All six reports paraphrased the section titles ("What happened", "Where it started",
+"How it propagated"), three wrote the confidence level in title case ("High"), one wrote "doesn't
+show", and the two richest cases handed over four next checks. The run of 2026-09-21 (2.1.278,
+main) had followed the template verbatim in all six.
+
+Two things changed between the runs: this branch, and the model behind `model: opus`. The Claude
+Code changelog dates the second one: in 2.1.280 (2026-09-22) the `opus` alias started resolving to
+Claude Opus 5.5. The branch's edits to the skill do not touch the format, and the drift is uniform
+across the six cases, including the case with no trace and therefore no diagram step - the pattern
+of a different writer, not of a new step. Attribution stays a hypothesis until a control run of one
+case on `main` with the new model; the mechanism, at least, is named this time (D12's lesson).
+
+The fix is in the product, as in D13, and no grader was relaxed: the report format is now stated as
+a contract rather than an example - titles verbatim (with the Portuguese equivalents spelled out so
+"in the user's language" cannot become "in your own words"), the level alone in capitals on the
+first line of Confidence, the diagram line copied exactly, and a five-point self-check the agent
+runs before sending. Pinning the agent to the previous model was considered and rejected: it would
+fix the score and leave every real user on the new model with the drift.
+
+**Second run, after the contract (2026-09-27 02:31, US$2.40).** Discipline now passes 6/6 - the cap
+of three holds, and the judge accepts the split confidence every report uses ("HIGH for where it
+started, LOW for the cause", each part justified). What still fails is one regex, `confidence-stated`,
+in 4 of 6 cases, and only because the level is written "High"/"Low" instead of "HIGH"/"LOW": the
+same reports, judged by the rubric, state a confidence level with a justification. Two product
+iterations moved the capitals from 0/6 to 2/6 and left the substance unchanged, so the residue is
+typographic. The regex is a cheap proxy for criterion 3 of the discipline judge, not a second
+standard; it gains `flags: i` so that case no longer discriminates, and `gaps-section` accepts
+"doesn't show" for the same reason. The contract keeps asking for capitals. This is the line D12
+draws: relax a grader only when it has been shown not to discriminate between good and bad reports.
+
+## D20. The report was being rewritten by the parent conversation, not by the investigator
+
+Third eval run (2026-09-27 02:45): 3 of 6 failed, now on substance - four next checks in case 02,
+no FACT/INFERENCE labels at all in cases 04 and 06 - and every run failed a different case. Two
+rounds of prompt hardening in the skill had changed little. So the question became *who writes the
+text the user sees*, and the answer was measured locally, without the eval sandbox:
+
+```
+claude -p 'Investigate trace 2aa803b2e40c97a2490d754a465fe9de using the bundled fixtures for 01-downstream-503.' \
+  --plugin-dir ./sherlock-holmes --allowedTools "Bash(python3 *collect-trace.py*)" "Bash(python3 *trace-diagram.py*)" Read Skill \
+  --output-format stream-json --verbose < /dev/null
+```
+
+`modelUsage` names one model for the whole run, `claude-opus-5-5[1m]` - so the agent's `model: opus`
+did resolve and no silent fallback happened. And the stream shows two texts: the forked
+investigator's report, returned as the Skill tool result, followed the contract to the letter
+(`# Trace investigation`, every section verbatim, FACT/INFERENCE/HYPOTHESIS/UNKNOWN, `HIGH … LOW …`,
+the diagram line copied); the **parent conversation's final message** - what the user sees and what
+`last_message` graders judge - was a 2,000-character rewrite with no headings, no labels, "high
+confidence" in lower case and no diagram line. `context: fork` hands the fork's result to the parent
+as a tool result, and the model behind the parent since 2.1.280 summarizes it. The previous model
+relayed it verbatim, which is why the 21/09 run matched the template character for character.
+
+The docs list no frontmatter field that makes a forked skill's output reach the user directly, so
+the fix speaks to the parent in the two places it reads: the skill's `description` now ends with
+"present it to the user exactly as returned, in full, without summarizing or reformatting it", and
+the report ends with a one-line trailer saying the same. Measured on the same prompt: the parent's
+final message became the report itself (same headings, labels and confidence line; the trailer
+dropped). One sample; the eval suite is the multi-sample test. The format contract (D19) stays as a
+guard on the investigator's side; the grader relaxations of D19 stay because the judge covers the
+substance either way.
+
+Lesson for next time, recorded so it is not paid for again: `claude -p … --output-format stream-json
+--verbose` reproduces a full investigation for about US$0.60 in under a minute, needs no sandbox,
+and shows every message including the fork's. It is the first thing to run when the eval disagrees
+with the skill, before touching any prompt or grader.
+
+**Confirmed.** Fourth run (2026-09-27 03:23, US$2.58): 6/6, every grader, every case - the first
+clean suite on the new model. Four suites and three local stream runs to get here, about US$11;
+the one that found the cause cost 60 cents.
