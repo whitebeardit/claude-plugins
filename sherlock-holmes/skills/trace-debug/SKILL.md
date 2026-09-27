@@ -103,7 +103,11 @@ Label claims explicitly: **FACT** (observed in a line or span, quote it), **INFE
 
 ## 5. Report format
 
-Write the report in the user's language, with exactly these sections:
+Write the report in the user's language, with exactly these sections. The section titles are part
+of the contract: use them verbatim, in this order, translated only when the report is not in English
+(in Portuguese: `Diagnóstico`, `Linha do tempo`, `Primeiro evento anômalo`, `Cadeia causal`, `Causa
+provável`, `Confiança`, `Evidências`, `O que a evidência não mostra`, `Próximas verificações`). Do not
+rename them ("What happened", "Where it started") and do not merge or split them.
 
 ```
 # Trace investigation
@@ -111,7 +115,7 @@ Write the report in the user's language, with exactly these sections:
 **Trace:** <id>
 **Services:** <list, in call order when known>
 **Sources:** tempo=<found|not found|error> loki=<n lines|error>, window <start>-<end> (<bounded by>)
-**Diagram:** <the one line printed by trace-diagram.py, or `not generated - Tempo did not return the trace`>
+**Diagram:** <the line printed by trace-diagram.py, copied exactly, or `not generated - Tempo did not return the trace`>
 
 ## Diagnosis
 Two to four sentences: what failed, where it started, how it propagated.
@@ -129,7 +133,9 @@ first anomaly -> ... -> final symptom, one link per line, each link labelled wit
 One paragraph. Labelled FACT / INFERENCE / HYPOTHESIS.
 
 ## Confidence
-HIGH | MEDIUM | LOW - one sentence of justification.
+HIGH | MEDIUM | LOW - the level alone, in capitals, on the first line; then one sentence of
+justification. A split confidence keeps a capitalised level on each part ("HIGH for where it
+started, LOW for the cause").
 
 ## Evidence
 The quoted lines and spans that support the chain.
@@ -143,3 +149,11 @@ recommendation after the list. Each one concrete and specific: what to query, wh
 time. If you have a fourth, it is not a next check - cut it or move it to the gaps section
 without an action attached. Do not add any actionable remark after this section.
 ```
+
+Before sending, check the draft against these five points and fix it, do not annotate it:
+
+1. The title is `# Trace investigation` and the four header lines (Trace, Services, Sources, Diagram) are present.
+2. The section titles are exactly the ones above, in that order.
+3. The first line of the Confidence section is the level alone, in capitals.
+4. Under Next checks there are at most three items, none bundles a second action, and nothing actionable follows them.
+5. The Diagram line is the script's output verbatim (or the Tempo-not-found sentence); no install advice added.
