@@ -41,10 +41,11 @@ The core rule: **never prefer a convincing story to incomplete evidence.** "Ther
 
 ## See it in action
 
-A sweep of a time window, the sequence diagram of the first row's trace, then the investigation of
-the same trace - real output of 0.4.0 on the bundled `cascade` fixture (synthetic data):
+A sweep of a time window, the map of its calls explored in the browser, the sequence diagram of the
+first row's trace, then the investigation of the same trace - real output of 0.5.0 on the bundled
+`cascade` fixture (synthetic data):
 
-![error-sweep, then diagram 1, then investigate 1, on the bundled fixtures](docs/media/error-sweep-demo.gif)
+![error-sweep, map, exploring the map, diagram 1, investigate 1, on the bundled fixtures](docs/media/error-sweep-demo.gif)
 
 Install to finished report, recorded end to end:
 
@@ -120,6 +121,25 @@ use the lighter skill, which runs no agent:
 ```
 /sherlock-holmes:trace-diagram 4bf92f3577b34da6a3ce929d0e0e4736
 ```
+
+### Exploring a diagram
+
+The trace diagram and the window map are the same kind of file, and everything below works offline in
+any browser - it is the [archify](https://github.com/tt-a1i/archify) viewer, not the plugin:
+
+| Control | What it does |
+| --- | --- |
+| Click a service | Its *passport*: upstream and downstream services and the calls recorded between them |
+| Click an arrow | The call it stands for, pinned and highlighted |
+| `/` or the search icon | Find a service by name |
+| **PATH** | Pick two services; the viewer shows the recorded route between them (never inferred from layout) |
+| **MAP** | Semantic radar: a thumbnail of the whole diagram, click to jump |
+| **LENS** | Compare roles - backends, databases, queues - and dim the rest |
+| Chapters / `P` | The guided views the script wrote ("Request path", "First span to fail", "Calls with error status"), step by step |
+| Style menu | Classic, Signal Flow, Blueprint, Editorial - same content, different look |
+| Theme, **Present**, **Export** | Light/dark, a presentation stage, PNG/SVG/WebM and share cards |
+
+None of these change what the diagram says: they are ways of reading the same recorded facts.
 
 ## Sweep a time window for errors
 
