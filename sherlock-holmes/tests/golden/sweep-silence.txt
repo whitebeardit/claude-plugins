@@ -1,0 +1,14 @@
+Error sweep · window 2026-09-17T13:00:00.000Z → 2026-09-17T14:00:00.000Z (fixture window; absolute, re-run with --start/--end to reproduce)
+Sources: tempo=ok (0 trace(s), 0 error span(s)); loki=ok (0 error line(s)) | service: all | recorded fixture, not a live backend
+Order: count desc, then first seen. Facts only: no severity, no cause.
+
+TEMPO · spans with error status, by service / operation / status code
+  no errors recorded in this window - which says nothing about what was not recorded (see Not covered)
+
+LOKI · error lines, by service / message signature (values masked)
+  no errors recorded in this window - which says nothing about what was not recorded (see Not covered)
+
+Not covered:
+  - requests that were not sampled never reach Tempo, so their errors are only in the logs (if anywhere)
+  - late ingestion: data can arrive in Tempo and Loki minutes after the fact; a re-run can add rows
+  - spans without an error status (for example a 4xx the service did not flag) are not listed

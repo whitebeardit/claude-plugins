@@ -1,0 +1,156 @@
+{
+ "status": "success",
+ "data": {
+  "resultType": "streams",
+  "result": [
+   {
+    "stream": {
+     "service_name": "customer-service"
+    },
+    "values": [
+     [
+      "1789650606031000000",
+      "{\"level\": \"error\", \"msg\": \"PostgreSQL connection timeout after 2000ms (customer 7)\", \"trace_id\": \"5b1e0c2a9f7d4e3b8a6c1d2e3f4a5b6c\"}"
+     ]
+    ]
+   },
+   {
+    "stream": {
+     "service_name": "payment-service"
+    },
+    "values": [
+     [
+      "1789650606160000000",
+      "{\"level\": \"error\", \"msg\": \"upstream customer-service returned 503\", \"trace_id\": \"5b1e0c2a9f7d4e3b8a6c1d2e3f4a5b6c\"}"
+     ],
+     [
+      "1789650606161000000",
+      "{\"level\": \"info\", \"msg\": \"charge failed, will not retry after error\", \"trace_id\": \"5b1e0c2a9f7d4e3b8a6c1d2e3f4a5b6c\"}"
+     ]
+    ]
+   },
+   {
+    "stream": {
+     "service_name": "api"
+    },
+    "values": [
+     [
+      "1789650606178000000",
+      "{\"level\": \"error\", \"msg\": \"HTTP 500 for POST /payment request_id=af07cd3490ab cpf=123.456.789-07\", \"trace_id\": \"5b1e0c2a9f7d4e3b8a6c1d2e3f4a5b6c\"}"
+     ]
+    ]
+   },
+   {
+    "stream": {
+     "service_name": "customer-service"
+    },
+    "values": [
+     [
+      "1789651549031000000",
+      "{\"level\": \"error\", \"msg\": \"PostgreSQL connection timeout after 2000ms (customer 19)\", \"trace_id\": \"6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d\"}"
+     ]
+    ]
+   },
+   {
+    "stream": {
+     "service_name": "payment-service"
+    },
+    "values": [
+     [
+      "1789651549160000000",
+      "{\"level\": \"error\", \"msg\": \"upstream customer-service returned 503\", \"trace_id\": \"6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d\"}"
+     ],
+     [
+      "1789651549161000000",
+      "{\"level\": \"info\", \"msg\": \"charge failed, will not retry after error\", \"trace_id\": \"6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d\"}"
+     ]
+    ]
+   },
+   {
+    "stream": {
+     "service_name": "api"
+    },
+    "values": [
+     [
+      "1789651549178000000",
+      "{\"level\": \"error\", \"msg\": \"HTTP 500 for POST /payment request_id=af19cd3490ab cpf=123.456.789-19\", \"trace_id\": \"6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d\"}"
+     ]
+    ]
+   },
+   {
+    "stream": {
+     "service_name": "customer-service"
+    },
+    "values": [
+     [
+      "1789652414031000000",
+      "{\"level\": \"error\", \"msg\": \"PostgreSQL connection timeout after 2000ms (customer 33)\", \"trace_id\": \"7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e\"}"
+     ]
+    ]
+   },
+   {
+    "stream": {
+     "service_name": "payment-service"
+    },
+    "values": [
+     [
+      "1789652414160000000",
+      "{\"level\": \"error\", \"msg\": \"upstream customer-service returned 503\", \"trace_id\": \"7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e\"}"
+     ],
+     [
+      "1789652414161000000",
+      "{\"level\": \"info\", \"msg\": \"charge failed, will not retry after error\", \"trace_id\": \"7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e\"}"
+     ]
+    ]
+   },
+   {
+    "stream": {
+     "service_name": "api"
+    },
+    "values": [
+     [
+      "1789652414178000000",
+      "{\"level\": \"error\", \"msg\": \"HTTP 500 for POST /payment request_id=af33cd3490ab cpf=123.456.789-33\", \"trace_id\": \"7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e\"}"
+     ]
+    ]
+   },
+   {
+    "stream": {
+     "service_name": "customer-service"
+    },
+    "values": [
+     [
+      "1789653753031000000",
+      "{\"level\": \"error\", \"msg\": \"PostgreSQL connection timeout after 2000ms (customer 42)\", \"trace_id\": \"2aa803b2e40c97a2490d754a465fe9de\"}"
+     ]
+    ]
+   },
+   {
+    "stream": {
+     "service_name": "payment-service"
+    },
+    "values": [
+     [
+      "1789653753160000000",
+      "{\"level\": \"error\", \"msg\": \"upstream customer-service returned 503\", \"trace_id\": \"2aa803b2e40c97a2490d754a465fe9de\"}"
+     ],
+     [
+      "1789653753161000000",
+      "{\"level\": \"info\", \"msg\": \"charge failed, will not retry after error\", \"trace_id\": \"2aa803b2e40c97a2490d754a465fe9de\"}"
+     ]
+    ]
+   },
+   {
+    "stream": {
+     "service_name": "api"
+    },
+    "values": [
+     [
+      "1789653753178000000",
+      "{\"level\": \"error\", \"msg\": \"HTTP 500 for POST /payment request_id=af42cd3490ab cpf=123.456.789-42\", \"trace_id\": \"2aa803b2e40c97a2490d754a465fe9de\"}"
+     ]
+    ]
+   }
+  ]
+ }
+}

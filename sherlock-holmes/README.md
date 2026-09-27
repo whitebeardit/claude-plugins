@@ -98,6 +98,28 @@ use the lighter skill, which runs no agent:
 /sherlock-holmes:trace-diagram 4bf92f3577b34da6a3ce929d0e0e4736
 ```
 
+## Sweep a time window for errors
+
+No trace id yet, just a question - "any errors in the last two hours?" - ask for a sweep:
+
+```
+/sherlock-holmes:error-sweep --last 2h --service payment-service
+```
+
+A script, not a model, answers it: one Tempo search for spans with error status and, when Loki is
+configured, one query for error lines. It prints a numbered table - service, operation or message
+signature, count, traces, first and last seen, example trace ids - grouped so that one failure mode is
+one row (numbers, ids, UUIDs, IPs and e-mails in messages are masked; `returned 503` keeps its code).
+The order is a fixed rule, count then first seen; there is no severity column and no cause. A footer
+says what the data cannot show: unsampled requests, late ingestion, search limits (a limit hit makes
+the counts a floor, and the table says so). The same window gives the same table.
+
+Then you choose what to spend on: `diagram 3` draws the first example trace of row 3 (no model), and
+`investigate 3` hands it to `trace-debug`, the only step that runs the agent. Rows your team already
+knows can be listed under `## Known errors` in the priors file: they are marked `known`, never
+hidden. Three recorded scenarios ship with the plugin - ask for the sweep of the bundled `cascade`,
+`timeouts` or `silence` fixture.
+
 ## Quick setup
 
 Six steps from nothing to a real investigation, plus an optional seventh for the diagram. Steps 1 and 2 need no Loki and no Tempo.
@@ -350,6 +372,7 @@ To record fixtures from a real incident: `collect-trace.py --trace-id <id> --dum
 
 - V1 (this): Loki + Tempo, timeline, first anomaly, causal chain, confidence, gaps, offline evals.
 - 0.3: the trace as an interactive sequence diagram (archify), evidence only.
+- 0.4: `error-sweep` - the errors of a time window as a deterministic table, without a trace id (issue #5).
 - V2: source code as complementary evidence (stack trace -> file:line), TraceQL search when no trace id is known.
 - V3: metrics around the window (error rate, saturation, pool usage).
 - V4: deploy correlation.

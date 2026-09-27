@@ -1,0 +1,43 @@
+Error sweep · window 2026-09-17T13:00:00.000Z → 2026-09-17T14:10:00.000Z (fixture window; absolute, re-run with --start/--end to reproduce)
+Sources: tempo=ok (5 trace(s), 25 error span(s)); loki=ok (12 error line(s)) | service: all | recorded fixture, not a live backend
+Order: count desc, then first seen. Facts only: no severity, no cause.
+
+TEMPO · spans with error status, by service / operation / status code
+    #  service                  operation                                code      n traces  first                    last                          max
+    1  api                      POST /payment                            500       4      4  2026-09-17 13:10:04.000Z 2026-09-17 14:02:31.000Z    2.18s
+       traces: 2aa803b2e40c97a2490d754a465fe9de 7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e 6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d
+    2  api                      POST payment-service/charge              502       4      4  2026-09-17 13:10:04.005Z 2026-09-17 14:02:31.005Z    2.17s
+       traces: 2aa803b2e40c97a2490d754a465fe9de 7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e 6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d
+    3  payment-service          POST /charge                             502       4      4  2026-09-17 13:10:04.008Z 2026-09-17 14:02:31.008Z    2.16s
+       message: upstream customer-service returned 503
+       traces: 2aa803b2e40c97a2490d754a465fe9de 7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e 6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d
+    4  payment-service          GET customer-service/customers/<N>       503       4      4  2026-09-17 13:10:04.020Z 2026-09-17 14:02:31.020Z    2.13s
+       traces: 2aa803b2e40c97a2490d754a465fe9de 7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e 6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d
+    5  customer-service         GET /customers/<N>                       503       4      4  2026-09-17 13:10:04.024Z 2026-09-17 14:02:31.024Z    2.12s
+       message: database unavailable
+       traces: 2aa803b2e40c97a2490d754a465fe9de 7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e 6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d
+    6  customer-service         SELECT customer → postgresql             -         4      4  2026-09-17 13:10:04.030Z 2026-09-17 14:02:31.030Z    2.00s
+       message: connection timeout after <N>ms (pool <N>/<N>, customer <N>)
+       traces: 2aa803b2e40c97a2490d754a465fe9de 7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e 6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d
+    7  inventory-service        GET /stock/<N>                           500       1      1  2026-09-17 13:51:09.000Z 2026-09-17 13:51:09.000Z     14ms
+       message: sku <N> not found in warehouse <N>
+       traces: 0e1f2a3b4c5d6e7f8091a2b3c4d5e6f7
+
+LOKI · error lines, by service / message signature (values masked)
+    #  service                  signature                                                n traces  first                    last                    
+    8  customer-service         PostgreSQL connection timeout after <N>ms (customer…     4      4  2026-09-17 13:10:06.031Z 2026-09-17 14:02:33.031Z
+       signature: PostgreSQL connection timeout after <N>ms (customer <N>)
+       traces: 2aa803b2e40c97a2490d754a465fe9de 7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e 6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d
+    9  payment-service          upstream customer-service returned 503                   4      4  2026-09-17 13:10:06.160Z 2026-09-17 14:02:33.160Z
+       traces: 2aa803b2e40c97a2490d754a465fe9de 7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e 6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d
+   10  api                      HTTP 500 for POST /payment request_id=<ID> cpf=<N>-…     4      4  2026-09-17 13:10:06.178Z 2026-09-17 14:02:33.178Z
+       signature: HTTP 500 for POST /payment request_id=<ID> cpf=<N>-<N>
+       traces: 2aa803b2e40c97a2490d754a465fe9de 7d3a2e4c1b9f6a5d0c8e3f4a5b6c7d8e 6c2f1d3b0a8e5f4c9b7d2e3f4a5b6c7d
+
+Not covered:
+  - 4 line(s) matched the error filter but parse as a lower level (for example INFO mentioning an error): not listed
+  - requests that were not sampled never reach Tempo, so their errors are only in the logs (if anywhere)
+  - late ingestion: data can arrive in Tempo and Loki minutes after the fact; a re-run can add rows
+  - spans without an error status (for example a 4xx the service did not flag) are not listed
+
+Next: "diagram <#>" draws the first example trace of that row; "investigate <#>" hands it to /sherlock-holmes:trace-debug.
