@@ -202,3 +202,17 @@ a light `trace-diagram` skill with no agent and no fork draws a trace on request
 an investigation. Both use the same two scripts. The CI validates the six golden specifications
 against a pinned archify commit, so a schema change upstream fails a pull request instead of a user's
 first run.
+
+## D18. Setup is a skill, not a hook and not a dependency
+
+Asked whether the install could "guarantee" archify and the Grafana wiring in one go. The plugin
+system offers no post-install action (`plugin.json` is static metadata) and `dependencies` only
+resolves other *marketplace plugins* - archify is an agent skill installed by the `skills` CLI, so
+declaring it would mean publishing a wrapper plugin, i.e. vendoring under another name (rejected in
+D16). A `SessionStart` hook could print "archify missing" but fires in every session of every
+project where the plugin is enabled, which is noise for a feature that is optional. So the guided
+path is `/sherlock-holmes:setup`: a skill with no agent that runs the two doctors, discovers UIDs,
+proposes the selector from real label names, hands over the `/config` values, and asks before
+running the one install it may run - `npx skills add tt-a1i/archify -g`, deliberately *not*
+pre-approved so that the permission prompt is the consent. What it cannot do is also stated in it:
+write the token (must be exported in the launching shell) or fill `/config` (only the user can).

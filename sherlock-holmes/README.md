@@ -101,6 +101,17 @@ use the lighter skill, which runs no agent:
 ## Quick setup
 
 Six steps from nothing to a real investigation, plus an optional seventh for the diagram. Steps 1 and 2 need no Loki and no Tempo.
+
+Or let the plugin guide you: after step 1, run
+
+```
+/sherlock-holmes:setup
+```
+
+It does steps 3 to 7 in one conversation - checks access with the doctor, finds the datasource UIDs,
+proposes the selector from the labels your Loki really has, hands you the exact `/config` values, and
+offers to install archify (only after you say yes). The two things it cannot do for you are export the
+token and fill `/config`: those stay yours, by design of the plugin system.
 Requirements: Claude Code and Python 3.8+.
 
 **1 — Install.** In Claude Code:
