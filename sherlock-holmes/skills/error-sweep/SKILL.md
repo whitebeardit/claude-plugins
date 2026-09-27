@@ -2,7 +2,7 @@
 name: error-sweep
 description: List the errors of a time window - without a trace id - as a fixed, numbered table of facts from Grafana Tempo (spans with error status) and Grafana Loki (error lines grouped by a masked message signature), then let the user choose what to see - the sequence diagram of an example trace, or a full investigation with trace-debug. Use when the user asks whether there were errors in a period ("any errors in the last 2 hours?", "what failed in payment-service yesterday afternoon?", "sweep the logs for errors"). Deterministic - no model judges severity or cause. Read-only. The table is the answer - show it to the user exactly as printed, in full, without summarizing, reordering or commenting on it.
 argument-hint: "[--last 2h | --start <t> --end <t>] [--service <name>] [--fixture <dir>]"
-allowed-tools: Bash(python3 *sweep-errors.py*) Bash(python3 *collect-trace.py*) Bash(python3 *trace-diagram.py*) Read
+allowed-tools: Bash(python3 *sweep-errors.py*) Bash(python3 *collect-trace.py*) Bash(python3 *trace-diagram.py*) Bash(python3 *window-map.py*) Read
 ---
 
 # Error sweep
@@ -78,6 +78,20 @@ The user answers with a row number and what they want.
   `2aa803b2e40c97a2490d754a465fe9de`, is recorded in
   `${CLAUDE_PLUGIN_ROOT}/evals/fixtures/01-downstream-503` - pass that as `--fixture` to the collector.
   The other fixture traces have no recording; say so instead of guessing.
+
+- **"map"** - draw every call recorded in the window's error traces as one sequence diagram (no model):
+
+  ```bash
+  python3 "${CLAUDE_PLUGIN_ROOT}/skills/trace-debug/scripts/window-map.py" --start <start> --end <end> [--service <name>] [config flags] [--fixture <dir>]
+  ```
+
+  with `<start>`/`<end>` copied from the table's header (the absolute window, so the map describes
+  exactly the swept window), the same `--service` and the same `--fixture` as the sweep. Give the user
+  the script's output verbatim - the `map:` line and every line under it (the arrows, what is not in
+  the map, the reading note) - in a code block, and nothing else. Do not open, read or search the
+  HTML: everything there is to say about the map is in those lines. Each arrow is one kind of call,
+  counted once; a sweep row counts one side of a call, so rows outnumber arrows by design. It shows
+  what happened, not why: never read a cause into it.
 
 - **"investigate N"** - invoke `/sherlock-holmes:trace-debug <first trace id of row N>` (add the
   `--fixture` above for the cascade demo). That is the only step here that runs an agent, and it runs

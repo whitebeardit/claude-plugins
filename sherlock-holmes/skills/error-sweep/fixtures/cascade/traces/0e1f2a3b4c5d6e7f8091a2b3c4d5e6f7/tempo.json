@@ -1,0 +1,57 @@
+{
+ "batches": [
+  {
+   "resource": {
+    "attributes": [
+     {
+      "key": "service.name",
+      "value": {
+       "stringValue": "inventory-service"
+      }
+     }
+    ]
+   },
+   "scopeSpans": [
+    {
+     "scope": {
+      "name": "fixture"
+     },
+     "spans": [
+      {
+       "traceId": "Dh8qO0xdbn+AkaKzxNXm9w==",
+       "spanId": "JLRbTHqboVg=",
+       "name": "GET /stock/88123",
+       "kind": "SPAN_KIND_SERVER",
+       "startTimeUnixNano": "1789653069000000000",
+       "endTimeUnixNano": "1789653069014000000",
+       "attributes": [
+        {
+         "key": "http.method",
+         "value": {
+          "stringValue": "GET"
+         }
+        },
+        {
+         "key": "http.route",
+         "value": {
+          "stringValue": "/stock/{sku}"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "500"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_ERROR",
+        "message": "sku 88123 not found in warehouse 3"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

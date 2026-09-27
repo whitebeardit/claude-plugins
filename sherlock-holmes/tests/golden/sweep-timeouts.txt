@@ -13,4 +13,4 @@ Not covered:
   - late ingestion: data can arrive in Tempo and Loki minutes after the fact; a re-run can add rows
   - spans without an error status (for example a 4xx the service did not flag) are not listed
 
-Next: "diagram <#>" draws the first example trace of that row; "investigate <#>" hands it to /sherlock-holmes:trace-debug.
+Next: "diagram <#>" draws the first example trace of that row; "investigate <#>" hands it to /sherlock-holmes:trace-debug; "map" draws every call recorded in this window's error traces.

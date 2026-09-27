@@ -1,0 +1,218 @@
+{
+ "batches": [
+  {
+   "resource": {
+    "attributes": [
+     {
+      "key": "service.name",
+      "value": {
+       "stringValue": "enrichment-service"
+      }
+     }
+    ]
+   },
+   "scopeSpans": [
+    {
+     "scope": {
+      "name": "fixture"
+     },
+     "spans": [
+      {
+       "traceId": "VME//fXbw1P4K4STwFdpUw==",
+       "spanId": "jpQqbFlr8I4=",
+       "name": "orders process",
+       "kind": "SPAN_KIND_CONSUMER",
+       "startTimeUnixNano": "1790171955000000000",
+       "endTimeUnixNano": "1790171985830000000",
+       "attributes": [
+        {
+         "key": "messaging.system",
+         "value": {
+          "stringValue": "aws_sqs"
+         }
+        },
+        {
+         "key": "messaging.destination.name",
+         "value": {
+          "stringValue": "orders"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_UNSET"
+       },
+       "parentSpanId": "od1K1LG2f3E="
+      },
+      {
+       "traceId": "VME//fXbw1P4K4STwFdpUw==",
+       "spanId": "9kM8BF8ipOk=",
+       "name": "DynamoDB.GetItem",
+       "kind": "SPAN_KIND_CLIENT",
+       "startTimeUnixNano": "1790171955005000000",
+       "endTimeUnixNano": "1790171955014000000",
+       "attributes": [
+        {
+         "key": "rpc.system",
+         "value": {
+          "stringValue": "aws-api"
+         }
+        },
+        {
+         "key": "rpc.service",
+         "value": {
+          "stringValue": "DynamoDB"
+         }
+        },
+        {
+         "key": "rpc.method",
+         "value": {
+          "stringValue": "GetItem"
+         }
+        },
+        {
+         "key": "db.system",
+         "value": {
+          "stringValue": "dynamodb"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "200"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_UNSET"
+       },
+       "parentSpanId": "jpQqbFlr8I4="
+      },
+      {
+       "traceId": "VME//fXbw1P4K4STwFdpUw==",
+       "spanId": "WqKU8Rio5Ek=",
+       "name": "POST",
+       "kind": "SPAN_KIND_CLIENT",
+       "startTimeUnixNano": "1790171955006000000",
+       "endTimeUnixNano": "1790171955013000000",
+       "attributes": [
+        {
+         "key": "net.peer.name",
+         "value": {
+          "stringValue": "dynamodb.us-east-1.amazonaws.com"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "200"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_UNSET"
+       },
+       "parentSpanId": "9kM8BF8ipOk="
+      },
+      {
+       "traceId": "VME//fXbw1P4K4STwFdpUw==",
+       "spanId": "afBEffowf+s=",
+       "name": "DynamoDB.GetItem",
+       "kind": "SPAN_KIND_CLIENT",
+       "startTimeUnixNano": "1790171955020000000",
+       "endTimeUnixNano": "1790171955029000000",
+       "attributes": [
+        {
+         "key": "rpc.system",
+         "value": {
+          "stringValue": "aws-api"
+         }
+        },
+        {
+         "key": "rpc.service",
+         "value": {
+          "stringValue": "DynamoDB"
+         }
+        },
+        {
+         "key": "rpc.method",
+         "value": {
+          "stringValue": "GetItem"
+         }
+        },
+        {
+         "key": "db.system",
+         "value": {
+          "stringValue": "dynamodb"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "200"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_UNSET"
+       },
+       "parentSpanId": "jpQqbFlr8I4="
+      },
+      {
+       "traceId": "VME//fXbw1P4K4STwFdpUw==",
+       "spanId": "gh+Z6vb+vOA=",
+       "name": "POST",
+       "kind": "SPAN_KIND_CLIENT",
+       "startTimeUnixNano": "1790171955021000000",
+       "endTimeUnixNano": "1790171955028000000",
+       "attributes": [
+        {
+         "key": "net.peer.name",
+         "value": {
+          "stringValue": "dynamodb.us-east-1.amazonaws.com"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "200"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_UNSET"
+       },
+       "parentSpanId": "afBEffowf+s="
+      },
+      {
+       "traceId": "VME//fXbw1P4K4STwFdpUw==",
+       "spanId": "uKfhZySUIi0=",
+       "name": "POST",
+       "kind": "SPAN_KIND_CLIENT",
+       "startTimeUnixNano": "1790171955800000000",
+       "endTimeUnixNano": "1790171985801000000",
+       "attributes": [
+        {
+         "key": "http.status_code",
+         "value": {
+          "stringValue": "nil"
+         }
+        },
+        {
+         "key": "net.peer.name",
+         "value": {
+          "stringValue": "provider-x.example.com"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_ERROR",
+        "message": "The operation was aborted due to timeout"
+       },
+       "parentSpanId": "jpQqbFlr8I4="
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

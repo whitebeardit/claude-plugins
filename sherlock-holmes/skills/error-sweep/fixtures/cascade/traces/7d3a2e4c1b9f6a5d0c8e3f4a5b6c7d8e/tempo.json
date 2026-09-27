@@ -1,0 +1,264 @@
+{
+ "batches": [
+  {
+   "resource": {
+    "attributes": [
+     {
+      "key": "service.name",
+      "value": {
+       "stringValue": "api"
+      }
+     }
+    ]
+   },
+   "scopeSpans": [
+    {
+     "scope": {
+      "name": "fixture"
+     },
+     "spans": [
+      {
+       "traceId": "fTouTBufal0Mjj9KW2x9jg==",
+       "spanId": "bESXgLI2iq4=",
+       "name": "POST /payment",
+       "kind": "SPAN_KIND_SERVER",
+       "startTimeUnixNano": "1789652412000000000",
+       "endTimeUnixNano": "1789652414180000000",
+       "attributes": [
+        {
+         "key": "http.method",
+         "value": {
+          "stringValue": "POST"
+         }
+        },
+        {
+         "key": "http.route",
+         "value": {
+          "stringValue": "/payment"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "500"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_ERROR",
+        "message": "upstream failure: payment-service returned 502"
+       }
+      },
+      {
+       "traceId": "fTouTBufal0Mjj9KW2x9jg==",
+       "spanId": "aYnfjZKPuPc=",
+       "name": "POST payment-service/charge",
+       "kind": "SPAN_KIND_CLIENT",
+       "startTimeUnixNano": "1789652412005000000",
+       "endTimeUnixNano": "1789652414170000000",
+       "attributes": [
+        {
+         "key": "http.method",
+         "value": {
+          "stringValue": "POST"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "502"
+         }
+        },
+        {
+         "key": "peer.service",
+         "value": {
+          "stringValue": "payment-service"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_ERROR",
+        "message": "HTTP 502"
+       },
+       "parentSpanId": "bESXgLI2iq4="
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "resource": {
+    "attributes": [
+     {
+      "key": "service.name",
+      "value": {
+       "stringValue": "payment-service"
+      }
+     }
+    ]
+   },
+   "scopeSpans": [
+    {
+     "scope": {
+      "name": "fixture"
+     },
+     "spans": [
+      {
+       "traceId": "fTouTBufal0Mjj9KW2x9jg==",
+       "spanId": "TnOn0jjQDMY=",
+       "name": "POST /charge",
+       "kind": "SPAN_KIND_SERVER",
+       "startTimeUnixNano": "1789652412008000000",
+       "endTimeUnixNano": "1789652414165000000",
+       "attributes": [
+        {
+         "key": "http.method",
+         "value": {
+          "stringValue": "POST"
+         }
+        },
+        {
+         "key": "http.route",
+         "value": {
+          "stringValue": "/charge"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "502"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_ERROR",
+        "message": "upstream customer-service returned 503"
+       },
+       "parentSpanId": "aYnfjZKPuPc="
+      },
+      {
+       "traceId": "fTouTBufal0Mjj9KW2x9jg==",
+       "spanId": "EbHqksBvZpM=",
+       "name": "GET customer-service/customers/33",
+       "kind": "SPAN_KIND_CLIENT",
+       "startTimeUnixNano": "1789652412020000000",
+       "endTimeUnixNano": "1789652414150000000",
+       "attributes": [
+        {
+         "key": "http.method",
+         "value": {
+          "stringValue": "GET"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "503"
+         }
+        },
+        {
+         "key": "peer.service",
+         "value": {
+          "stringValue": "customer-service"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_ERROR",
+        "message": "HTTP 503"
+       },
+       "parentSpanId": "TnOn0jjQDMY="
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "resource": {
+    "attributes": [
+     {
+      "key": "service.name",
+      "value": {
+       "stringValue": "customer-service"
+      }
+     }
+    ]
+   },
+   "scopeSpans": [
+    {
+     "scope": {
+      "name": "fixture"
+     },
+     "spans": [
+      {
+       "traceId": "fTouTBufal0Mjj9KW2x9jg==",
+       "spanId": "dNMVrC7elF8=",
+       "name": "GET /customers/33",
+       "kind": "SPAN_KIND_SERVER",
+       "startTimeUnixNano": "1789652412024000000",
+       "endTimeUnixNano": "1789652414145000000",
+       "attributes": [
+        {
+         "key": "http.method",
+         "value": {
+          "stringValue": "GET"
+         }
+        },
+        {
+         "key": "http.route",
+         "value": {
+          "stringValue": "/customers/{id}"
+         }
+        },
+        {
+         "key": "http.status_code",
+         "value": {
+          "intValue": "503"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_ERROR",
+        "message": "database unavailable"
+       },
+       "parentSpanId": "EbHqksBvZpM="
+      },
+      {
+       "traceId": "fTouTBufal0Mjj9KW2x9jg==",
+       "spanId": "K8Gi/+LthbU=",
+       "name": "SELECT customer",
+       "kind": "SPAN_KIND_CLIENT",
+       "startTimeUnixNano": "1789652412030000000",
+       "endTimeUnixNano": "1789652414032000000",
+       "attributes": [
+        {
+         "key": "db.system",
+         "value": {
+          "stringValue": "postgresql"
+         }
+        },
+        {
+         "key": "db.operation",
+         "value": {
+          "stringValue": "SELECT"
+         }
+        },
+        {
+         "key": "net.peer.name",
+         "value": {
+          "stringValue": "customers-db"
+         }
+        }
+       ],
+       "status": {
+        "code": "STATUS_CODE_ERROR",
+        "message": "connection timeout after 2000ms"
+       },
+       "parentSpanId": "dNMVrC7elF8="
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

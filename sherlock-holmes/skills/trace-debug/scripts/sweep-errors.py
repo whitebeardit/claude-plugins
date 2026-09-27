@@ -466,7 +466,7 @@ def render_table(doc: dict) -> str:
     if any(r["examples"] for r in doc["rows"]):
         L.append("")
         L.append('Next: "diagram <#>" draws the first example trace of that row; "investigate <#>" hands it to '
-                 "/sherlock-holmes:trace-debug.")
+                 '/sherlock-holmes:trace-debug; "map" draws every call recorded in this window\'s error traces.')
     return "\n".join(L)
 
 
