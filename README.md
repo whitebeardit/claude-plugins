@@ -19,12 +19,12 @@ Evidence-first incident investigation by trace ID, using **Grafana Loki** logs a
 
 ```
 /sherlock-holmes:trace-debug 4bf92f3577b34da6a3ce929d0e0e4736   # why did this request fail?
-/sherlock-holmes:error-sweep --last 2h                          # were there errors in this window?
+/sherlock-holmes:error-sweep --last 2h                          # were there errors in this window? then: map
 /sherlock-holmes:trace-diagram 4bf92f3577b34da6a3ce929d0e0e4736 # draw the call sequence
 /sherlock-holmes:setup                                          # wire it to your Grafana
 ```
 
-![error-sweep, then diagram 1, then investigate 1, on the bundled fixtures](sherlock-holmes/docs/media/error-sweep-demo.gif)
+![error-sweep, map, exploring the map, diagram 1, investigate 1, on the bundled fixtures](sherlock-holmes/docs/media/error-sweep-demo.gif)
 
 Only the investigation runs a model; the sweep and the diagram are deterministic scripts, so the same
 input gives the same answer.
