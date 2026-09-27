@@ -153,6 +153,32 @@ def _status_code(*spans) -> str | None:
     return None
 
 
+# Error semantics, as recorded (D23). archify has no free colour: its `security` message variant is the
+# one red in every preset, and the legend may rename it - message variants are visual keys, not lens
+# facts. The call itself stays neutral; its outcome carries the colour. A span's own error status wins;
+# otherwise the status code class decides (OpenTelemetry: a 4xx is an error for the caller only).
+LEGEND_LABELS = {                    # short: archify under-measures legend labels, long ones overlap
+    "default": "call",
+    "return": "ok",
+    "security": "5xx / error",
+    "emphasis": "4xx",
+    "dashed": "queue",
+}
+
+
+def outcome_variant(error: bool, code) -> str:
+    c = str(code or "")
+    if error or (len(c) == 3 and c.startswith("5")):
+        return "security"
+    if len(c) == 3 and c.startswith("4"):
+        return "emphasis"
+    return "return"
+
+
+def legend(labels: dict = LEGEND_LABELS) -> dict:
+    return {"mode": "auto", "entries": {k: {"label": v} for k, v in labels.items()}}
+
+
 def _error_path(spans: list, by_id: dict) -> set:
     """Spans with error status plus every ancestor: the path a reader must be able to follow."""
     keep = set()
@@ -228,16 +254,18 @@ def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "
             drawn_client.add(s["span_id"])
             events.append({"ts": s.get("start") or "", "from": ids[s["service"]], "to": pid,
                            "label": f'{clean(s.get("operation"))}  {clock(s.get("start"))}',
-                           "variant": "emphasis" if s.get("error") else "default",
+                           "variant": "default",
                            "span": s["span_id"], "callee": child["span_id"] if child else None,
                            "role": "call", "dur": dur or 0})
-            code = _status_code(child or {}, s) or (child or s).get("status") or "?"
+            numeric = _status_code(child or {}, s)
+            failed = bool(s.get("error") or (child or {}).get("error"))
+            code = numeric or (child or s).get("status") or "?"
             label = f'{clean(code, 12)}  {clock(s.get("end"))}  {dur_txt}'
             msg = (child or s).get("status_message")
             if s.get("error") and msg:
                 label += "  " + clean(msg, 40)
             events.append({"ts": s.get("end") or "", "from": pid, "to": ids[s["service"]],
-                           "label": label, "variant": "return", "span": s["span_id"],
+                           "label": label, "variant": outcome_variant(failed, numeric), "span": s["span_id"],
                            "callee": child["span_id"] if child else None, "role": "return", "dur": dur or 0})
         elif kind in ("PRODUCER", "CONSUMER"):
             bus = _first(a, BUS_KEYS) or _first(a, PEER_KEYS)
@@ -301,10 +329,12 @@ def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "
             continue
         ys = y_of.get(s.get("parent_span_id") or "")
         if ys and len(ys) >= 2:
-            activations.append({"participant": ids[s["service"]], "from": ys[0] - 6, "to": ys[-1] + 6, "type": "backend"})
+            activations.append({"participant": ids[s["service"]], "from": ys[0] - 6, "to": ys[-1] + 6,
+                                "type": "security" if s.get("error") else "backend"})
         elif s["span_id"] == tempo.get("root_span") and events:
             # The root span's caller is not in the trace: an activation, never an invented message.
-            activations.append({"participant": ids[s["service"]], "from": Y0 - 30, "to": last_y + 20, "type": "backend"})
+            activations.append({"participant": ids[s["service"]], "from": Y0 - 30, "to": last_y + 20,
+                                "type": "security" if s.get("error") else "backend"})
 
     root = by_id.get(tempo.get("root_span")) or spans[0]
     facts = doc.get("facts") or {}
@@ -316,7 +346,7 @@ def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "
         + (f' · {dur:.0f} ms' if isinstance(dur, (int, float)) else ""),
         f'window {clock(tempo.get("trace_start"))} → {clock(tempo.get("trace_end"))} (as recorded)']}]
     if first_fail:
-        cards.append({"dot": "orange", "title": "FACT · first span to fail", "items": [
+        cards.append({"dot": "rose", "title": "FACT · first span to fail", "items": [
             f'{clean(first_fail.get("service"), 24)} · {clean(first_fail.get("operation"), 40)}',
             f'{clock(first_fail.get("timestamp"))} → {clock(first_fail.get("ended"))} · '
             + (f'{first_fail["duration_ms"]:.0f} ms' if isinstance(first_fail.get("duration_ms"), (int, float)) else "? ms"),
@@ -358,7 +388,7 @@ def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "
         "meta": {"title": clean(f'Trace {tid[:16]}… · {root.get("service")} {root.get("operation")}', 80),
                  "subtitle": f"trace {tid} · evidence only: spans as recorded, no causal claim",
                  "viewBox": [width, last_y + 300], "animation": "trace",
-                 "quality_profile": quality, "column_fit": "spread", "views": views},
+                 "quality_profile": quality, "column_fit": "spread", "views": views, "legend": legend()},
         "participants": participants, "messages": messages, "activations": activations, "cards": cards,
     }
 

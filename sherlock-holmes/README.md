@@ -97,6 +97,13 @@ span as notes on the matching message. Open it in a browser and send it around; 
 needed to view it. `/` finds a participant, `R` traces a route between two of them, `P` plays the
 guided chapters ("Request path", "First span to fail"), and Export gives PNG or SVG.
 
+Colour carries the outcome, read from the span, and a legend under the diagram names each one. A call
+is neutral grey. Its return is **red** when the span has error status or a 5xx code, **amber** for a
+4xx without error status (an error for the caller, not necessarily for the server, as OpenTelemetry
+puts it), and plain when it went well. A service whose SERVER span has error status gets a red
+activation bar, and the "first span to fail" card is marked red too. Queue sends and deliveries stay
+dashed violet.
+
 It is **evidence only**. A deterministic script builds it from the spans as recorded; the agent
 never authors it, no cause is drawn, and the "first span to fail" chapter says so in its own note:
 being first is a fact, being the cause is the investigator's call. Labels come from an allowlist of
@@ -169,7 +176,7 @@ hidden. Three recorded scenarios ship with the plugin - ask for the sweep of the
 `map` downloads the traces that had an error span in the window (the newest 50 by default) and draws
 every call they recorded as one sequence diagram: services are the columns, and each kind of call -
 caller, callee, operation with ids masked - is one arrow labelled `4× POST /charge · 4 err 502`, in
-order of first occurrence. It answers "who called whom in this window, how often, how often with an
+order of first occurrence. An arrow is red when any of its calls had error status; the legend says so. It answers "who called whom in this window, how often, how often with an
 error", for all rows at once. Cards say what the map cannot show: callers outside the traces, sampled
 traces Tempo did not return, errors inside a service with no call, and that calls from error-free
 traces are not in it. A sequence, not a node-and-edge graph, because it is laid out by rule - the

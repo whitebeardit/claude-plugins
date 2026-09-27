@@ -85,7 +85,8 @@ class EvidenceOnlyTest(unittest.TestCase):
         labels = [m["label"] for m in seq["messages"]]
         self.assertEqual(labels, ["3× orders process", "6× DynamoDB.GetItem", "3× POST · 3 err"])
         self.assertEqual(stats["folded"], 6)
-        self.assertEqual([m["variant"] for m in seq["messages"]], ["dashed", "default", "emphasis"])
+        self.assertEqual([m["variant"] for m in seq["messages"]], ["dashed", "default", "security"])
+        self.assertEqual(seq["meta"]["legend"]["entries"]["security"]["label"], "has errors")
         self.assertEqual(seq["participants"][0]["type"], "messagebus", "a queue that delivers is drawn as the sender")
         self.assertNotIn("nil", " ".join(labels))
 

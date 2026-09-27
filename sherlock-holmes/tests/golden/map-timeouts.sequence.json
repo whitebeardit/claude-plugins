@@ -50,13 +50,27 @@
    "label": "3× POST · 3 err",
    "note": "3 trace(s) · first 00:12:39.800",
    "to": "provider-x-example-com",
-   "variant": "emphasis",
+   "variant": "security",
    "y": 258
   }
  ],
  "meta": {
   "animation": "trace",
   "column_fit": "spread",
+  "legend": {
+   "entries": {
+    "dashed": {
+     "label": "queue"
+    },
+    "default": {
+     "label": "call"
+    },
+    "security": {
+     "label": "has errors"
+    }
+   },
+   "mode": "auto"
+  },
   "quality_profile": "showcase",
   "subtitle": "evidence only: calls as recorded in traces with an error span; no causal claim",
   "title": "Window map · 2026-09-20 00:00 → 00:00 UTC",

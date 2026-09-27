@@ -4,19 +4,19 @@
    "from": 140,
    "participant": "api",
    "to": 410,
-   "type": "backend"
+   "type": "security"
   },
   {
    "from": 164,
    "participant": "gateway-bff",
    "to": 396,
-   "type": "backend"
+   "type": "security"
   },
   {
    "from": 208,
    "participant": "pricing-service",
    "to": 352,
-   "type": "backend"
+   "type": "security"
   },
   {
    "from": 252,
@@ -36,7 +36,7 @@
    "title": "FACT · trace"
   },
   {
-   "dot": "orange",
+   "dot": "rose",
    "items": [
     "pricing-service · GET /price",
     "14:02:31.010 → 14:02:31.082 · 72 ms",
@@ -51,14 +51,14 @@
    "from": "api",
    "label": "GET gateway-bff/quotes/5  14:02:31.003",
    "to": "gateway-bff",
-   "variant": "emphasis",
+   "variant": "default",
    "y": 170
   },
   {
    "from": "gateway-bff",
    "label": "GET pricing-service/price  14:02:31.008",
    "to": "pricing-service",
-   "variant": "emphasis",
+   "variant": "default",
    "y": 214
   },
   {
@@ -80,7 +80,7 @@
    "label": "500  14:02:31.084  76 ms  java.lang.NullPointerException",
    "note": "[error] 14:02:31.079 NullPointerException at PriceCalculator.java:88",
    "to": "gateway-bff",
-   "variant": "return",
+   "variant": "security",
    "y": 346
   },
   {
@@ -88,13 +88,33 @@
    "label": "500  14:02:31.090  87 ms  upstream pricing-service 500",
    "note": "[error] 14:02:31.086 upstream pricing-service 500",
    "to": "api",
-   "variant": "return",
+   "variant": "security",
    "y": 390
   }
  ],
  "meta": {
   "animation": "trace",
   "column_fit": "spread",
+  "legend": {
+   "entries": {
+    "dashed": {
+     "label": "queue"
+    },
+    "default": {
+     "label": "call"
+    },
+    "emphasis": {
+     "label": "4xx"
+    },
+    "return": {
+     "label": "ok"
+    },
+    "security": {
+     "label": "5xx / error"
+    }
+   },
+   "mode": "auto"
+  },
   "quality_profile": "showcase",
   "subtitle": "trace 84c8614b9b6df5d3565fbdb3f2174e95 · evidence only: spans as recorded, no causal claim",
   "title": "Trace 84c8614b9b6df5d3… · api GET /quotes/5",

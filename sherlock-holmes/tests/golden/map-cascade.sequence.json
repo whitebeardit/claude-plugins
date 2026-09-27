@@ -35,7 +35,7 @@
    "label": "4× POST payment-service/charge · 4 err 502",
    "note": "4 trace(s) · first 13:10:04.005",
    "to": "payment-service",
-   "variant": "emphasis",
+   "variant": "security",
    "y": 170
   },
   {
@@ -43,7 +43,7 @@
    "label": "4× GET customer-service/customers/<N> · 4 err 503",
    "note": "4 trace(s) · first 13:10:04.020",
    "to": "customer-service",
-   "variant": "emphasis",
+   "variant": "security",
    "y": 214
   },
   {
@@ -51,13 +51,27 @@
    "label": "4× SELECT customer · 4 err",
    "note": "4 trace(s) · first 13:10:04.030",
    "to": "customers-db",
-   "variant": "emphasis",
+   "variant": "security",
    "y": 258
   }
  ],
  "meta": {
   "animation": "trace",
   "column_fit": "spread",
+  "legend": {
+   "entries": {
+    "dashed": {
+     "label": "queue"
+    },
+    "default": {
+     "label": "call"
+    },
+    "security": {
+     "label": "has errors"
+    }
+   },
+   "mode": "auto"
+  },
   "quality_profile": "showcase",
   "subtitle": "evidence only: calls as recorded in traces with an error span; no causal claim",
   "title": "Window map · 2026-09-17 13:00 → 14:10 UTC",

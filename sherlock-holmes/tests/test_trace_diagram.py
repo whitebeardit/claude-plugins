@@ -108,7 +108,7 @@ class GoldenTest(unittest.TestCase):
         self.assertEqual([c["title"] for c in seq["cards"]], ["FACT · trace", "FACT · first span to fail"])
         self.assertEqual([v["label"] for v in seq["meta"]["views"]], ["Request path", "First span to fail"])
         # the error log line the collector joined to the SELECT span rides on its return message
-        ret = [m for m in seq["messages"] if m["variant"] == "return" and m["from"] == "customers-db"][0]
+        ret = [m for m in seq["messages"] if m["variant"] == "security" and m["from"] == "customers-db"][0]
         self.assertIn("connection timeout", ret.get("note", ""))
         self.assertTrue(ret["note"].startswith("[error] 14:02:33.031"))
 
@@ -119,7 +119,7 @@ class GoldenTest(unittest.TestCase):
                 continue
             root = seq["participants"][0]["id"]
             with self.subTest(case=case):
-                self.assertFalse([m for m in seq["messages"] if m["to"] == root and m["variant"] != "return"],
+                self.assertFalse([m for m in seq["messages"] if m["to"] == root and m["variant"] not in ("return", "security", "emphasis")],
                                  "nothing may call the root service: its caller is not in the trace")
                 self.assertTrue(any(a["participant"] == root for a in seq["activations"]))
 
@@ -285,6 +285,60 @@ class RealTraceShapesTest(unittest.TestCase):
                  span("q", "r", "svc", "SELECT users", "CLIENT", T0 + 1_000_000, T0 + 9_000_000, attrs={"db.system": "postgresql"})]
         seq = td.build_sequence(doc_with(spans))
         self.assertEqual([(x["label"], x["type"]) for x in seq["participants"]][1], ("postgresql", "database"))
+
+
+class ErrorSemanticsTest(unittest.TestCase):
+    """D23: the outcome carries the colour, the call stays neutral; everything comes from the span."""
+
+    def _pair(self, code, error=False, child_error=None):
+        spans = [span("r", None, "edge", "GET /x", "SERVER", T0, T0 + 50_000_000),
+                 span("c", "r", "edge", "GET svc/y", "CLIENT", T0 + 1_000_000, T0 + 40_000_000, error,
+                      {"peer.service": "svc", "http.status_code": code}),
+                 span("s", "c", "svc", "GET /y", "SERVER", T0 + 2_000_000, T0 + 39_000_000,
+                      error if child_error is None else child_error, {"http.status_code": code})]
+        return td.build_sequence(doc_with(spans))
+
+    def test_outcome_classes(self):
+        self.assertEqual(td.outcome_variant(False, "200"), "return")
+        self.assertEqual(td.outcome_variant(False, "503"), "security", "a 5xx is an error even without error status")
+        self.assertEqual(td.outcome_variant(False, "404"), "emphasis")
+        self.assertEqual(td.outcome_variant(True, "404"), "security", "recorded error status wins")
+        self.assertEqual(td.outcome_variant(True, None), "security")
+        self.assertEqual(td.outcome_variant(False, "nil"), "return")
+
+    def test_call_is_neutral_and_the_return_is_coloured(self):
+        for code, error, want in (("200", False, "return"), ("502", True, "security"), ("404", False, "emphasis")):
+            with self.subTest(code=code):
+                seq = self._pair(code, error)
+                call, ret = seq["messages"]
+                self.assertEqual(call["variant"], "default")
+                self.assertEqual(ret["variant"], want)
+
+    def test_server_span_with_error_status_gets_a_red_activation(self):
+        seq = self._pair("500", error=True)
+        types = {a["participant"]: a["type"] for a in seq["activations"]}
+        self.assertEqual(types["svc"], "security")
+        ok = self._pair("200")
+        self.assertTrue(all(a["type"] == "backend" for a in ok["activations"]))
+
+    def test_legend_names_the_colours_and_first_failure_card_is_rose(self):
+        seq = self._pair("503", error=True)
+        self.assertEqual(seq["meta"]["legend"]["mode"], "auto")
+        self.assertEqual(seq["meta"]["legend"]["entries"]["security"]["label"], "5xx / error")
+        doc = doc_with([span("r", None, "edge", "GET /x", "SERVER", T0, T0 + 5_000_000, True)])
+        doc["facts"] = {"earliest_error_signals": [{"kind": "span_first_to_fail", "service": "edge", "operation": "GET /x",
+                                                    "timestamp": ct.iso(T0), "ended": ct.iso(T0 + 5_000_000), "duration_ms": 5.0, "summary": "boom"}]}
+        spans = doc["tempo"]["spans"] + [span("c", "r", "edge", "GET db", "CLIENT", T0, T0 + 1_000_000, attrs={"db.system": "postgresql"})]
+        doc["tempo"]["spans"] = spans
+        seq = td.build_sequence(doc)
+        card = [c for c in seq["cards"] if c["title"] == "FACT · first span to fail"][0]
+        self.assertEqual(card["dot"], "rose")
+
+    def test_fixture_01_red_path(self):
+        seq = td.build_sequence(collect("01-downstream-503", Path(tempfile.mkdtemp())))
+        self.assertEqual([m["variant"] for m in seq["messages"]], ["default", "default", "default", "security", "security", "security"])
+        red = {a["participant"] for a in seq["activations"] if a["type"] == "security"}
+        self.assertEqual(red, {"api", "payment-service", "customer-service"}, "every server span with error status, root included")
 
 
 class CapTest(unittest.TestCase):
