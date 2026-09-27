@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.3.2...sherlock-holmes-v0.4.0) (2026-09-27)
+
+
+### Features
+
+* **sherlock-holmes:** error-sweep - errors of a time window as a deterministic table ([#5](https://github.com/whitebeardit/claude-plugins/issues/5)) ([#13](https://github.com/whitebeardit/claude-plugins/issues/13)) ([38401bb](https://github.com/whitebeardit/claude-plugins/commit/38401bb27b6e964aa884637cee9bd1117a9bbd30))
+
 ## [0.3.2](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.3.1...sherlock-holmes-v0.3.2) (2026-09-27)
 
 
