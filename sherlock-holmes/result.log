@@ -22,3 +22,15 @@ CASE                           SCORE PASS% RUNS COST    NOTES
 6 case(s) · 470s · $2.40
 
 Re-run with --keep-temp to preserve each run's sandbox (workspace + trace.jsonl) for debugging.
+
+CASE  SCORE PASS% RUNS COST    NOTES
+
+0 case(s) · 0s · $0.00
+
+6 case file(s) failed to load — see above.
+
+CASE  SCORE PASS% RUNS COST    NOTES
+
+0 case(s) · 0s · $0.00
+
+6 case file(s) failed to load — see above.
