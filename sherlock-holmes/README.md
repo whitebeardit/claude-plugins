@@ -4,6 +4,16 @@ Evidence-first incident investigation by trace ID, for Claude Code. Give it a tr
 
 It is **read-only**. It never modifies production, dashboards, alerts or code.
 
+Four skills, one rule - facts come from deterministic scripts, and a model runs only when you ask for
+an investigation:
+
+| Skill | The question it answers | Model? |
+| --- | --- | --- |
+| `/sherlock-holmes:trace-debug <trace-id>` | Why did this request fail, hang or slow down? | Yes - the forked investigator agent |
+| `/sherlock-holmes:error-sweep --last 2h` | Were there errors in this window? Where, how many, since when? | No - a script prints the table |
+| `/sherlock-holmes:trace-diagram <trace-id>` | What did this trace do - who called whom, where did the time go? | No - a script draws it |
+| `/sherlock-holmes:setup` | How do I wire this to my Grafana? | No agent - a guided checklist |
+
 ```
 /sherlock-holmes:trace-debug 4bf92f3577b34da6a3ce929d0e0e4736
 ```
@@ -14,6 +24,7 @@ It is **read-only**. It never modifies production, dashboards, alerts or code.
 # Trace investigation
 **Trace:** ...  **Services:** api -> payment-service -> customer-service
 **Sources:** tempo=found loki=9 lines, window 14:02:01-14:03:03 (bounded by tempo)
+**Diagram:** diagram: generated /tmp/trace-debug/<trace-id>.html (6 messages; evidence only)
 
 ## Diagnosis            two to four sentences
 ## Timeline             the lines that matter, gaps noted
@@ -29,6 +40,11 @@ It is **read-only**. It never modifies production, dashboards, alerts or code.
 The core rule: **never prefer a convincing story to incomplete evidence.** "There is not enough evidence to determine the root cause" is a valid answer, and the agent is built to give it.
 
 ## See it in action
+
+A sweep of a time window, the sequence diagram of the first row's trace, then the investigation of
+the same trace - real output of 0.4.0 on the bundled `cascade` fixture (synthetic data):
+
+![error-sweep, then diagram 1, then investigate 1, on the bundled fixtures](docs/media/error-sweep-demo.gif)
 
 Install to finished report, recorded end to end:
 
@@ -54,13 +70,19 @@ sherlock-holmes agent (forked subagent, opus)
 report with confidence and gaps
 ```
 
-Three files do the work:
+The files that do the work:
 
 | File | Role |
 | --- | --- |
-| `skills/trace-debug/scripts/collect-trace.py` | Collects facts. Never decides a cause. |
-| `skills/trace-debug/SKILL.md` | The procedure: how to collect, the investigation protocol, the report format. |
+| `skills/trace-debug/scripts/collect-trace.py` | Collects the facts of one trace. Never decides a cause. |
+| `skills/trace-debug/scripts/sweep-errors.py` | Lists the errors of a time window, grouped and ordered by a fixed rule. No trace id needed. |
+| `skills/trace-debug/scripts/trace-diagram.py` | Draws a collected trace as a sequence diagram (archify). Evidence only. |
+| `skills/trace-debug/SKILL.md` | The investigation: how to collect, the protocol, the report format. |
+| `skills/error-sweep/`, `skills/trace-diagram/`, `skills/setup/` | The three model-free skills around the scripts. |
 | `agents/sherlock-holmes.md` | The investigator: identity, rules, prohibitions, confidence rubric. |
+
+Only `trace-debug` runs an agent. The sweep and the diagram are the same kind of tool as the
+collector: deterministic, read-only, the same input gives the same output.
 
 Why Tempo first? A trace ID carries no timestamp. Looking a trace up by ID in Tempo is indexed and cheap, and it returns the exact start and end, so the Loki query can be tight instead of scanning hours of every stream. The agent still *reads* logs first; only the collection order is Tempo-first. When Tempo does not have the trace (unsampled, unexported, expired), the collector says so and falls back to a lookback window, or to `--around` / `--start` `--end` if you know roughly when it happened.
 
@@ -123,6 +145,7 @@ hidden. Three recorded scenarios ship with the plugin - ask for the sweep of the
 ## Quick setup
 
 Six steps from nothing to a real investigation, plus an optional seventh for the diagram. Steps 1 and 2 need no Loki and no Tempo.
+Requirements: Claude Code and Python 3.8+ (Node 18+ only for the optional diagram).
 
 Or let the plugin guide you: after step 1, run
 
@@ -134,7 +157,6 @@ It does steps 3 to 7 in one conversation - checks access with the doctor, finds 
 proposes the selector from the labels your Loki really has, hands you the exact `/config` values, and
 offers to install archify (only after you say yes). The two things it cannot do for you are export the
 token and fill `/config`: those stay yours, by design of the plugin system.
-Requirements: Claude Code and Python 3.8+.
 
 **1 — Install.** In Claude Code:
 
@@ -235,6 +257,15 @@ installed or which directory you are in. The six scenarios, each a different sha
 All fixture data is synthetic. Cases 04 and 05 are the interesting ones to judge it on, because the
 correct answer there is partly "the evidence cannot say".
 
+The error sweep has three recorded windows of its own - ask for the sweep of the bundled `cascade`,
+`timeouts` or `silence` fixture:
+
+| Window fixture | What it shows |
+| --- | --- |
+| `cascade` | Three services failing together (a DB timeout surfacing as 503 -> 502 -> 500) plus one unrelated error, in Tempo and Loki. Its newest trace is the one recorded in `01-downstream-503`, so `diagram 1` and `investigate 1` work offline. |
+| `timeouts` | One outbound call timing out at 30 s, three times, Tempo only - a service whose logs are not in Loki. |
+| `silence` | No errors at all - and a table that says so without claiming everything is fine. |
+
 ## Configure
 
 Installing the plugin opens a dialog asking where your Grafana is, the Loki and Tempo datasource
@@ -287,7 +318,7 @@ Tuning, all optional:
 | `LOKI_TRACE_FIELD` | `trace_id` | Field name for the `metadata` and `json` modes. |
 | `LOKI_SERVICE_LABELS` | `service_name,service,app,container,k8s_container_name,job` | Labels tried, in order, to name the service. Falls back to JSON fields in the line. |
 | `TEMPO_API` | `v1` | `v1` = `/api/traces/<id>` (every Tempo version). `v2` = `/api/v2/traces/<id>`. |
-| `HTTP_TIMEOUT` | `20` | Seconds per request. |
+| `HTTP_TIMEOUT` | `20` (collector), `30` (sweep) | Seconds per request. |
 
 ### When the first run doesn't line up
 
@@ -319,11 +350,20 @@ environment it inherits, so set them in the shell that launches Claude Code.
 
 Or ask in plain words: "investigate trace 4bf9..." and Claude delegates to the `sherlock-holmes` agent.
 
+```
+/sherlock-holmes:error-sweep --last 2h                        # every service, last two hours
+/sherlock-holmes:error-sweep --start 2026-09-17T13:00Z --end 2026-09-17T14:10Z --service payment-service
+/sherlock-holmes:trace-diagram 4bf92f3577b34da6a3ce929d0e0e4736  # draw it, no investigation
+```
+
+After a sweep, answer with a row number: `diagram 3` or `investigate 3`. Or in plain words: "any
+errors in payment-service since 14h?".
+
 Flags after the trace id go to the collector unchanged: `--around <time>`, `--start`/`--end`, `--lookback 2h` (default 24h, used only when Tempo cannot bound the window), `--pad 30s`, `--fixture <dir>`.
 
 **Project priors.** Put a `.claude/trace-debug/priors.md` in your project with the behaviours that are normal for your system: expected retries, known noisy lines, sampling rules ("ingestion traces are never sampled"), dependencies that time out by design. The agent reads it before forming hypotheses and treats it as team context, not as evidence about the trace.
 
-**Permissions.** The skill pre-approves exactly one command shape, `python3 *collect-trace.py*`, plus `Read`. If your permission mode still prompts, allow that pattern in your settings. The agent has no other tools.
+**Permissions.** The skills pre-approve exactly three command shapes - `python3 *collect-trace.py*`, `python3 *trace-diagram.py*` and `python3 *sweep-errors.py*` - plus `Read`. If your permission mode still prompts, allow those patterns in your settings. The agent has no other tools. `setup` runs one command that is deliberately not pre-approved, `npx skills add tt-a1i/archify -g`, and only after you say yes: the permission prompt is the consent.
 
 ## Semantics the agent relies on
 
@@ -336,12 +376,13 @@ Flags after the trace id go to the collector unchanged: `--around <time>`, `--st
 
 ## Optional: Grafana MCP
 
-The collector does not need the Grafana MCP server. If you already run it, the agent can be given its read-only tools for follow-up checks (TraceQL search when you have no trace id, error patterns, metrics), but the timeline always comes from the collector. Do not give the agent the MCP's write tools.
+The collector does not need the Grafana MCP server, and neither does the sweep - `error-sweep` is the TraceQL search for when you have no trace id. If you already run the MCP, the agent can be given its read-only tools for follow-up checks (error patterns, metrics), but the timeline always comes from the collector. Do not give the agent the MCP's write tools.
 
 ## Test
 
 ```bash
-python3 -m unittest discover -s tests -v                # collector + diagram, no network
+python3 -m unittest discover -s tests -v                # collector + sweep + diagram, no network
+python3 skills/trace-debug/scripts/sweep-errors.py --fixture skills/error-sweep/fixtures/cascade
 ARCHIFY_BIN=/path/to/archify.mjs python3 skills/trace-debug/scripts/trace-diagram.py \
   --input /tmp/trace-debug/2aa803b2e40c97a2490d754a465fe9de.json   # after the collector line below
 python3 skills/trace-debug/scripts/collect-trace.py \
@@ -354,9 +395,14 @@ See `evals/README.md` for the sandbox prerequisites (bubblewrap needs unprivileg
 
 `evals/` has six offline cases mirroring the classic failure shapes: downstream 503 chain, DB timeout with retries and no trace in Tempo, error visible only in spans, contradictory logs with clock skew, incomplete trace, error in an intermediate service. Each case seeds recorded Loki/Tempo responses into the workspace and grades the report with rubrics derived from `expected.json`. All fixture data is synthetic.
 
-`tests/golden/` holds the diagram specification for each fixture; `UPDATE_GOLDEN=1` regenerates them
-after an intended change, and the CI validates them against a pinned archify commit so an upstream
-schema change fails a pull request, not a user's first run.
+`tests/golden/` holds the diagram specification for each trace fixture and the sweep table for each
+window fixture; `UPDATE_GOLDEN=1` regenerates them after an intended change. The CI validates the
+diagram goldens against a pinned archify commit, so an upstream schema change fails a pull request,
+not a user's first run, and it regenerates every fixture (`evals/fixtures/generate.py`,
+`skills/error-sweep/fixtures/generate.py`) to prove they are reproducible.
+
+The demo GIF above is real output rendered from the bundled fixtures; `docs/media/demo/` has the
+script that captures it (headless Chrome over CDP, then `ffmpeg`).
 
 To record fixtures from a real incident: `collect-trace.py --trace-id <id> --dump-raw ./some-dir`. Review the dump for personal data before committing it.
 
@@ -366,16 +412,23 @@ To record fixtures from a real incident: `collect-trace.py --trace-id <id> --dum
 - The diagram renderer never reaches the network (archify's update check is disabled per call) and its HTML only carries allowlisted span attributes.
 - Credentials come from the environment and are never printed, not even in error messages.
 - Trace ids are validated (16 or 32 hex chars, or a traceparent) before touching a query, which is also what prevents LogQL injection.
-- The collector refuses to run without a Loki selector.
+- The collector and the sweep refuse to run Loki without a selector, and never with `{}`.
+- The sweep builds TraceQL and LogQL only from validated names (service, level field), and its message signatures mask numbers, ids, UUIDs, IPs, e-mail and tokens before anything is printed.
 
 ## Roadmap
 
-- V1 (this): Loki + Tempo, timeline, first anomaly, causal chain, confidence, gaps, offline evals.
-- 0.3: the trace as an interactive sequence diagram (archify), evidence only.
-- 0.4: `error-sweep` - the errors of a time window as a deterministic table, without a trace id (issue #5).
-- V2: source code as complementary evidence (stack trace -> file:line), TraceQL search when no trace id is known.
-- V3: metrics around the window (error rate, saturation, pool usage).
-- V4: deploy correlation.
+Shipped:
+
+- 0.1-0.2: Loki + Tempo investigation by trace id - timeline, first anomaly, causal chain, confidence, gaps; offline evals; guided configuration.
+- 0.3: the trace as an interactive sequence diagram (archify), evidence only; `trace-diagram` and `setup` skills.
+- 0.4: `error-sweep` - the errors of a time window as a deterministic table, without a trace id ([#5](https://github.com/whitebeardit/claude-plugins/issues/5)).
+
+Next:
+
+- A "window map": the services and the calls observed between them in a sweep window, with call and error counts, drawn by rule (archify data-flow), no inference.
+- Source code as complementary evidence (stack trace -> file:line).
+- Metrics around the window (error rate, saturation, pool usage).
+- Deploy correlation.
 
 ## License
 
