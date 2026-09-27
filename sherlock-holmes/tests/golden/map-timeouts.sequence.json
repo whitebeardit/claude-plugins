@@ -1,0 +1,114 @@
+{
+ "activations": [],
+ "cards": [
+  {
+   "dot": "cyan",
+   "items": [
+    "2026-09-20T00:00:00Z → 2026-09-27T00:00:00Z",
+    "3 trace(s) with an error span · 3 drawn",
+    "12 call(s) in 3 kind(s)"
+   ],
+   "title": "FACT · window"
+  },
+  {
+   "dot": "cyan",
+   "items": [
+    "one arrow per kind of call recorded in those traces",
+    "n× calls, k err = spans with error status",
+    "order = first seen; calls of error-free traces are not here"
+   ],
+   "title": "FACT · how to read"
+  },
+  {
+   "dot": "cyan",
+   "items": [
+    "6 nested outbound span(s) folded into their call"
+   ],
+   "title": "FACT · not drawn, on purpose"
+  }
+ ],
+ "diagram_type": "sequence",
+ "messages": [
+  {
+   "from": "orders",
+   "label": "3× orders process",
+   "note": "3 trace(s) · first 00:12:39.000",
+   "to": "enrichment-service",
+   "variant": "dashed",
+   "y": 170
+  },
+  {
+   "from": "enrichment-service",
+   "label": "6× DynamoDB.GetItem",
+   "note": "3 trace(s) · first 00:12:39.005",
+   "to": "DynamoDB",
+   "variant": "default",
+   "y": 214
+  },
+  {
+   "from": "enrichment-service",
+   "label": "3× POST · 3 err",
+   "note": "3 trace(s) · first 00:12:39.800",
+   "to": "provider-x-example-com",
+   "variant": "emphasis",
+   "y": 258
+  }
+ ],
+ "meta": {
+  "animation": "trace",
+  "column_fit": "spread",
+  "quality_profile": "showcase",
+  "subtitle": "evidence only: calls as recorded in traces with an error span; no causal claim",
+  "title": "Window map · 2026-09-20 00:00 → 00:00 UTC",
+  "viewBox": [
+   900,
+   558
+  ],
+  "views": [
+   {
+    "focus": [
+     "orders",
+     "enrichment-service",
+     "DynamoDB",
+     "provider-x-example-com"
+    ],
+    "id": "all-calls",
+    "label": "All calls in the sample",
+    "note": "Every kind of call the sampled traces recorded, in order of first occurrence."
+   },
+   {
+    "focus": [
+     "enrichment-service",
+     "provider-x-example-com"
+    ],
+    "id": "calls-with-errors",
+    "label": "Calls with error status",
+    "note": "Arrows with errors. Sharing a window is a fact; being related is the investigator's call."
+   }
+  ]
+ },
+ "participants": [
+  {
+   "id": "orders",
+   "label": "orders",
+   "type": "messagebus"
+  },
+  {
+   "id": "enrichment-service",
+   "label": "enrichment-service",
+   "type": "backend"
+  },
+  {
+   "id": "DynamoDB",
+   "label": "DynamoDB",
+   "sublabel": "dynamodb",
+   "type": "database"
+  },
+  {
+   "id": "provider-x-example-com",
+   "label": "provider-x.example.com",
+   "type": "backend"
+  }
+ ],
+ "schema_version": 1
+}

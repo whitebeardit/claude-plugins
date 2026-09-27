@@ -317,3 +317,30 @@ model run, taken because the reader chose it. `## Known errors` in the priors fi
 hides them. Not built: severity, alerting or watching (Grafana does that; this is triage), and a
 "window map" of calls between services - planned as a data-flow diagram laid out by rule, since
 archify's dataflow places nodes by stage/row index.
+
+## D22. The window map is an aggregated sequence, not a node-and-edge graph
+
+The plan was a data-flow diagram: services as nodes placed by `stage`/`row` index, observed calls as
+flows. The spike (2026-09-27) measured what archify's data-flow checks require on the shapes a real
+map produces, and every one of them failed without per-edge decisions: an edge that skips a stage
+"crosses node" of an unrelated service (a hard failure at every quality profile); two nodes of
+different height give a 7-13 px dogleg below the 16 px interior-segment minimum; a fan-out puts its
+labels 0 px from each other; a stage holds at most five rows (row 5 is "invalid"); five stages need
+a wider canvas than showcase allows. The repairs the diagnostics offer - `fromSide`/`toSide`,
+`route`, `channelX/Y`, `labelSegment`, moving a node - are exactly the per-edge layout judgement that
+archify keeps out of scope ("general-purpose auto-layout"). A rule-based layered layout would pass
+chains and fail the most common real shape, two services calling one database.
+
+A sequence diagram needs none of that: participants are columns in order of first appearance, and
+each arrow is placed by time. So `window-map.py` aggregates the calls of the window's error traces -
+caller, callee, masked operation, the same reading of spans as `trace-diagram.py` (SERVER child or
+named peer, nested outbound spans folded, queues as senders or receivers) - into one arrow per kind
+of call, labelled with counts of spans (`4× POST /charge · 4 err 502`), ordered by first occurrence.
+Fan-in and fan-out are just more arrows. It reuses the canvas rule measured in 0.3.2
+(`canvas_and_label_cap`) and the showcase -> standard -> compact ladder. Verified on the two window
+fixtures and on a real service (a week, 3 error traces, 30 calls in 4 kinds, showcase on the first
+attempt, 2.9 s).
+
+What it does not claim: the sample is the traces that had an error span (newest first, declared),
+so calls of error-free traces are absent and the card says so; a root span's caller is counted and
+never drawn; an error inside a service with no call is listed as UNKNOWN rather than dropped.

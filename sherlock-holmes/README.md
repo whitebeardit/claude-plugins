@@ -77,6 +77,7 @@ The files that do the work:
 | `skills/trace-debug/scripts/collect-trace.py` | Collects the facts of one trace. Never decides a cause. |
 | `skills/trace-debug/scripts/sweep-errors.py` | Lists the errors of a time window, grouped and ordered by a fixed rule. No trace id needed. |
 | `skills/trace-debug/scripts/trace-diagram.py` | Draws a collected trace as a sequence diagram (archify). Evidence only. |
+| `skills/trace-debug/scripts/window-map.py` | Draws every call recorded in a window's error traces as one aggregated sequence diagram. |
 | `skills/trace-debug/SKILL.md` | The investigation: how to collect, the protocol, the report format. |
 | `skills/error-sweep/`, `skills/trace-diagram/`, `skills/setup/` | The three model-free skills around the scripts. |
 | `agents/sherlock-holmes.md` | The investigator: identity, rules, prohibitions, confidence rubric. |
@@ -136,11 +137,23 @@ The order is a fixed rule, count then first seen; there is no severity column an
 says what the data cannot show: unsampled requests, late ingestion, search limits (a limit hit makes
 the counts a floor, and the table says so). The same window gives the same table.
 
-Then you choose what to spend on: `diagram 3` draws the first example trace of row 3 (no model), and
-`investigate 3` hands it to `trace-debug`, the only step that runs the agent. Rows your team already
+Then you choose what to spend on: `diagram 3` draws the first example trace of row 3 (no model),
+`map` draws the whole window (below), and `investigate 3` hands row 3's trace to `trace-debug`, the
+only step that runs the agent. Rows your team already
 knows can be listed under `## Known errors` in the priors file: they are marked `known`, never
 hidden. Three recorded scenarios ship with the plugin - ask for the sweep of the bundled `cascade`,
 `timeouts` or `silence` fixture.
+
+### The window map
+
+`map` downloads the traces that had an error span in the window (the newest 50 by default) and draws
+every call they recorded as one sequence diagram: services are the columns, and each kind of call -
+caller, callee, operation with ids masked - is one arrow labelled `4× POST /charge · 4 err 502`, in
+order of first occurrence. It answers "who called whom in this window, how often, how often with an
+error", for all rows at once. Cards say what the map cannot show: callers outside the traces, sampled
+traces Tempo did not return, errors inside a service with no call, and that calls from error-free
+traces are not in it. A sequence, not a node-and-edge graph, because it is laid out by rule - the
+script stays deterministic (decision D22).
 
 ## Quick setup
 
@@ -363,7 +376,7 @@ Flags after the trace id go to the collector unchanged: `--around <time>`, `--st
 
 **Project priors.** Put a `.claude/trace-debug/priors.md` in your project with the behaviours that are normal for your system: expected retries, known noisy lines, sampling rules ("ingestion traces are never sampled"), dependencies that time out by design. The agent reads it before forming hypotheses and treats it as team context, not as evidence about the trace.
 
-**Permissions.** The skills pre-approve exactly three command shapes - `python3 *collect-trace.py*`, `python3 *trace-diagram.py*` and `python3 *sweep-errors.py*` - plus `Read`. If your permission mode still prompts, allow those patterns in your settings. The agent has no other tools. `setup` runs one command that is deliberately not pre-approved, `npx skills add tt-a1i/archify -g`, and only after you say yes: the permission prompt is the consent.
+**Permissions.** The skills pre-approve exactly four command shapes - `python3 *collect-trace.py*`, `python3 *trace-diagram.py*`, `python3 *sweep-errors.py*` and `python3 *window-map.py*` - plus `Read`. If your permission mode still prompts, allow those patterns in your settings. The agent has no other tools. `setup` runs one command that is deliberately not pre-approved, `npx skills add tt-a1i/archify -g`, and only after you say yes: the permission prompt is the consent.
 
 ## Semantics the agent relies on
 
@@ -383,6 +396,7 @@ The collector does not need the Grafana MCP server, and neither does the sweep -
 ```bash
 python3 -m unittest discover -s tests -v                # collector + sweep + diagram, no network
 python3 skills/trace-debug/scripts/sweep-errors.py --fixture skills/error-sweep/fixtures/cascade
+python3 skills/trace-debug/scripts/window-map.py --fixture skills/error-sweep/fixtures/cascade
 ARCHIFY_BIN=/path/to/archify.mjs python3 skills/trace-debug/scripts/trace-diagram.py \
   --input /tmp/trace-debug/2aa803b2e40c97a2490d754a465fe9de.json   # after the collector line below
 python3 skills/trace-debug/scripts/collect-trace.py \
@@ -422,10 +436,10 @@ Shipped:
 - 0.1-0.2: Loki + Tempo investigation by trace id - timeline, first anomaly, causal chain, confidence, gaps; offline evals; guided configuration.
 - 0.3: the trace as an interactive sequence diagram (archify), evidence only; `trace-diagram` and `setup` skills.
 - 0.4: `error-sweep` - the errors of a time window as a deterministic table, without a trace id ([#5](https://github.com/whitebeardit/claude-plugins/issues/5)).
+- 0.5: the window map - every call recorded in a window's error traces, as one aggregated sequence diagram.
 
 Next:
 
-- A "window map": the services and the calls observed between them in a sweep window, with call and error counts, drawn by rule (archify data-flow), no inference.
 - Source code as complementary evidence (stack trace -> file:line).
 - Metrics around the window (error rate, saturation, pool usage).
 - Deploy correlation.

@@ -1,0 +1,117 @@
+{
+ "activations": [],
+ "cards": [
+  {
+   "dot": "cyan",
+   "items": [
+    "2026-09-17T13:00:00Z → 2026-09-17T14:10:00Z",
+    "5 trace(s) with an error span · 5 drawn",
+    "12 call(s) in 3 kind(s)"
+   ],
+   "title": "FACT · window"
+  },
+  {
+   "dot": "cyan",
+   "items": [
+    "one arrow per kind of call recorded in those traces",
+    "n× calls, k err = spans with error status",
+    "order = first seen; calls of error-free traces are not here"
+   ],
+   "title": "FACT · how to read"
+  },
+  {
+   "dot": "orange",
+   "items": [
+    "called from outside the traces: api ×4, inventory-service ×1",
+    "errors inside a service, no call recorded: inventory-service"
+   ],
+   "title": "UNKNOWN · not in this map"
+  }
+ ],
+ "diagram_type": "sequence",
+ "messages": [
+  {
+   "from": "api",
+   "label": "4× POST payment-service/charge · 4 err 502",
+   "note": "4 trace(s) · first 13:10:04.005",
+   "to": "payment-service",
+   "variant": "emphasis",
+   "y": 170
+  },
+  {
+   "from": "payment-service",
+   "label": "4× GET customer-service/customers/<N> · 4 err 503",
+   "note": "4 trace(s) · first 13:10:04.020",
+   "to": "customer-service",
+   "variant": "emphasis",
+   "y": 214
+  },
+  {
+   "from": "customer-service",
+   "label": "4× SELECT customer · 4 err",
+   "note": "4 trace(s) · first 13:10:04.030",
+   "to": "customers-db",
+   "variant": "emphasis",
+   "y": 258
+  }
+ ],
+ "meta": {
+  "animation": "trace",
+  "column_fit": "spread",
+  "quality_profile": "showcase",
+  "subtitle": "evidence only: calls as recorded in traces with an error span; no causal claim",
+  "title": "Window map · 2026-09-17 13:00 → 14:10 UTC",
+  "viewBox": [
+   900,
+   558
+  ],
+  "views": [
+   {
+    "focus": [
+     "api",
+     "payment-service",
+     "customer-service",
+     "customers-db"
+    ],
+    "id": "all-calls",
+    "label": "All calls in the sample",
+    "note": "Every kind of call the sampled traces recorded, in order of first occurrence."
+   },
+   {
+    "focus": [
+     "api",
+     "payment-service",
+     "customer-service",
+     "customers-db"
+    ],
+    "id": "calls-with-errors",
+    "label": "Calls with error status",
+    "note": "Arrows with errors. Sharing a window is a fact; being related is the investigator's call."
+   }
+  ]
+ },
+ "participants": [
+  {
+   "id": "api",
+   "label": "api",
+   "type": "backend"
+  },
+  {
+   "id": "payment-service",
+   "label": "payment-service",
+   "type": "backend"
+  },
+  {
+   "id": "customer-service",
+   "label": "customer-service",
+   "type": "backend"
+  },
+  {
+   "id": "customers-db",
+   "label": "customers-db",
+   "sublabel": "postgresql",
+   "type": "database"
+  }
+ ],
+ "schema_version": 1
+}
