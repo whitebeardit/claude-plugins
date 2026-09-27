@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.5.0...sherlock-holmes-v0.6.0) (2026-09-27)
+
+
+### Features
+
+* **sherlock-holmes:** colour the diagram by outcome (5xx/error red, 4xx amber) with a legend ([#19](https://github.com/whitebeardit/claude-plugins/issues/19)) ([f7b4703](https://github.com/whitebeardit/claude-plugins/commit/f7b470391db8e1843ed451eed230daa308ac377b))
+
 ## [0.5.0](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.4.0...sherlock-holmes-v0.5.0) (2026-09-27)
 
 
