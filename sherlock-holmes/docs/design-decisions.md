@@ -286,3 +286,7 @@ Lesson for next time, recorded so it is not paid for again: `claude -p … --out
 --verbose` reproduces a full investigation for about US$0.60 in under a minute, needs no sandbox,
 and shows every message including the fork's. It is the first thing to run when the eval disagrees
 with the skill, before touching any prompt or grader.
+
+**Confirmed.** Fourth run (2026-09-27 03:23, US$2.58): 6/6, every grader, every case - the first
+clean suite on the new model. Four suites and three local stream runs to get here, about US$11;
+the one that found the cause cost 60 cents.
