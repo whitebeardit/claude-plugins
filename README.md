@@ -18,14 +18,22 @@ A [Claude Code](https://claude.com/claude-code) plugin marketplace.
 Evidence-first incident investigation by trace ID, using **Grafana Loki** logs and **Grafana Tempo** traces. Give it a trace ID; it rebuilds the timeline across services, finds the first anomalous event, separates cause from consequence, and tells you how confident it is and what the evidence cannot show.
 
 ```
-/sherlock-holmes:trace-debug 4bf92f3577b34da6a3ce929d0e0e4736
+/sherlock-holmes:trace-debug 4bf92f3577b34da6a3ce929d0e0e4736   # why did this request fail?
+/sherlock-holmes:error-sweep --last 2h                          # were there errors in this window?
+/sherlock-holmes:trace-diagram 4bf92f3577b34da6a3ce929d0e0e4736 # draw the call sequence
+/sherlock-holmes:setup                                          # wire it to your Grafana
 ```
+
+![error-sweep, then diagram 1, then investigate 1, on the bundled fixtures](sherlock-holmes/docs/media/error-sweep-demo.gif)
+
+Only the investigation runs a model; the sweep and the diagram are deterministic scripts, so the same
+input gives the same answer.
 
 It is read-only by construction: the collector only issues HTTP GET, the agent has no write tools, and credentials are read from the environment and never printed. It works against any Loki and any Tempo, directly or through Grafana's datasource proxy.
 
 The rule it is built around: **never prefer a convincing story to incomplete evidence.** "There is not enough evidence to determine the root cause" is a valid answer, and the agent is built to give it.
 
-Its [README](sherlock-holmes/README.md) carries the six-step [quick setup](sherlock-holmes/README.md#quick-setup), the full configuration reference and the report format.
+Its [README](sherlock-holmes/README.md) carries the [quick setup](sherlock-holmes/README.md#quick-setup) (or run `/sherlock-holmes:setup`), the full configuration reference, the report format and the [error sweep](sherlock-holmes/README.md#sweep-a-time-window-for-errors).
 
 ## Repository layout
 
