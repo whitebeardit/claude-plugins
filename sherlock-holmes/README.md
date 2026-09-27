@@ -100,7 +100,7 @@ use the lighter skill, which runs no agent:
 
 ## Quick setup
 
-Six steps from nothing to a real investigation. Steps 1 and 2 need no Loki and no Tempo.
+Six steps from nothing to a real investigation, plus an optional seventh for the diagram. Steps 1 and 2 need no Loki and no Tempo.
 Requirements: Claude Code and Python 3.8+.
 
 **1 — Install.** In Claude Code:
@@ -159,6 +159,18 @@ export LOKI_SELECTOR='{namespace="your-namespace"}'
 ```
 /sherlock-holmes:trace-debug <trace-id>
 ```
+
+**7 — Optional: the diagram.** Install [archify](https://github.com/tt-a1i/archify) once (Node 18+;
+this also installs its `archify-review` companion skill, which the plugin does not use):
+
+```bash
+npx skills add tt-a1i/archify -g
+```
+
+Ask for the doctor again: it now says `"diagram": {"available": true, ...}` with the path it found
+(`~/.claude/skills/archify/bin/archify.mjs`). From then on every investigation with a trace in Tempo
+also delivers the HTML described in [See the trace as a diagram](#see-the-trace-as-a-diagram). Skip
+this step and nothing else changes.
 
 No Grafana in front of your Loki and Tempo? [Direct URLs work too](#configure). Trace found but
 zero log lines? [Usually the selector or the trace-id field](#when-the-first-run-doesnt-line-up).
