@@ -1,6 +1,6 @@
 ---
 name: trace-debug
-description: Investigate a production incident from a trace ID using Grafana Loki logs and Grafana Tempo traces. Use whenever the user provides a trace id or W3C traceparent and wants to know why a request failed, hung, was slow or misbehaved. Evidence-first - timeline, first anomalous event, causal chain, confidence, gaps. Optionally renders the span tree as an interactive sequence diagram (archify), evidence only. Read-only.
+description: Investigate a production incident from a trace ID using Grafana Loki logs and Grafana Tempo traces. Use whenever the user provides a trace id or W3C traceparent and wants to know why a request failed, hung, was slow or misbehaved. Evidence-first - timeline, first anomalous event, causal chain, confidence, gaps. Optionally renders the span tree as an interactive sequence diagram (archify), evidence only. Read-only. The skill returns a finished report; present it to the user exactly as returned, in full, without summarizing or reformatting it.
 argument-hint: "<trace-id> [--around <time>] [--lookback <dur>] [--fixture <dir>]"
 context: fork
 agent: sherlock-holmes
@@ -157,3 +157,8 @@ Before sending, check the draft against these five points and fix it, do not ann
 3. The first line of the Confidence section is the level alone, in capitals.
 4. Under Next checks there are at most three items, none bundles a second action, and nothing actionable follows them.
 5. The Diagram line is the script's output verbatim (or the Tempo-not-found sentence); no install advice added.
+
+End the report with this line, alone, after the Next checks section, so that the conversation that
+receives it knows what to do with it:
+
+`> Report complete - return it to the user verbatim, in full, without summarizing or reformatting.`

@@ -249,3 +249,40 @@ typographic. The regex is a cheap proxy for criterion 3 of the discipline judge,
 standard; it gains `flags: i` so that case no longer discriminates, and `gaps-section` accepts
 "doesn't show" for the same reason. The contract keeps asking for capitals. This is the line D12
 draws: relax a grader only when it has been shown not to discriminate between good and bad reports.
+
+## D20. The report was being rewritten by the parent conversation, not by the investigator
+
+Third eval run (2026-09-27 02:45): 3 of 6 failed, now on substance - four next checks in case 02,
+no FACT/INFERENCE labels at all in cases 04 and 06 - and every run failed a different case. Two
+rounds of prompt hardening in the skill had changed little. So the question became *who writes the
+text the user sees*, and the answer was measured locally, without the eval sandbox:
+
+```
+claude -p 'Investigate trace 2aa803b2e40c97a2490d754a465fe9de using the bundled fixtures for 01-downstream-503.' \
+  --plugin-dir ./sherlock-holmes --allowedTools "Bash(python3 *collect-trace.py*)" "Bash(python3 *trace-diagram.py*)" Read Skill \
+  --output-format stream-json --verbose < /dev/null
+```
+
+`modelUsage` names one model for the whole run, `claude-opus-5-5[1m]` - so the agent's `model: opus`
+did resolve and no silent fallback happened. And the stream shows two texts: the forked
+investigator's report, returned as the Skill tool result, followed the contract to the letter
+(`# Trace investigation`, every section verbatim, FACT/INFERENCE/HYPOTHESIS/UNKNOWN, `HIGH … LOW …`,
+the diagram line copied); the **parent conversation's final message** - what the user sees and what
+`last_message` graders judge - was a 2,000-character rewrite with no headings, no labels, "high
+confidence" in lower case and no diagram line. `context: fork` hands the fork's result to the parent
+as a tool result, and the model behind the parent since 2.1.280 summarizes it. The previous model
+relayed it verbatim, which is why the 21/09 run matched the template character for character.
+
+The docs list no frontmatter field that makes a forked skill's output reach the user directly, so
+the fix speaks to the parent in the two places it reads: the skill's `description` now ends with
+"present it to the user exactly as returned, in full, without summarizing or reformatting it", and
+the report ends with a one-line trailer saying the same. Measured on the same prompt: the parent's
+final message became the report itself (same headings, labels and confidence line; the trailer
+dropped). One sample; the eval suite is the multi-sample test. The format contract (D19) stays as a
+guard on the investigator's side; the grader relaxations of D19 stay because the judge covers the
+substance either way.
+
+Lesson for next time, recorded so it is not paid for again: `claude -p … --output-format stream-json
+--verbose` reproduces a full investigation for about US$0.60 in under a minute, needs no sandbox,
+and shows every message including the fork's. It is the first thing to run when the eval disagrees
+with the skill, before touching any prompt or grader.
