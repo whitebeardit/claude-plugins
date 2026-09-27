@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.3.1...sherlock-holmes-v0.3.2) (2026-09-27)
+
+
+### Bug Fixes
+
+* **sherlock-holmes:** canvas and label cap follow archify's measured layout rules ([#11](https://github.com/whitebeardit/claude-plugins/issues/11)) ([6a68247](https://github.com/whitebeardit/claude-plugins/commit/6a68247b1d231cd60ffec6def19e3c53fbbc13a8))
+
 ## [0.3.1](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.3.0...sherlock-holmes-v0.3.1) (2026-09-27)
 
 
