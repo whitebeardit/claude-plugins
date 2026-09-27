@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.2.1...sherlock-holmes-v0.3.0) (2026-09-27)
+
+
+### Features
+
+* **sherlock-holmes:** evidence-only sequence diagram of the trace (archify) + trace-diagram skill ([#7](https://github.com/whitebeardit/claude-plugins/issues/7)) ([fda3a00](https://github.com/whitebeardit/claude-plugins/commit/fda3a00c9f8d31cf11f4735955f5203580658432))
+
 ## [0.2.1](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.2.0...sherlock-holmes-v0.2.1) (2026-09-22)
 
 
