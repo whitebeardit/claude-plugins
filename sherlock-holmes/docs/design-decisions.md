@@ -216,3 +216,25 @@ proposes the selector from real label names, hands over the `/config` values, an
 running the one install it may run - `npx skills add tt-a1i/archify -g`, deliberately *not*
 pre-approved so that the permission prompt is the consent. What it cannot do is also stated in it:
 write the token (must be exported in the launching shell) or fill `/config` (only the user can).
+
+## D19. The format drifted with the model, so the format became a mechanical contract
+
+First eval run of the 0.3 branch (2026-09-27, Claude Code 2.1.283): 4 of 6 cases failed, none on
+the diagnosis. All six reports paraphrased the section titles ("What happened", "Where it started",
+"How it propagated"), three wrote the confidence level in title case ("High"), one wrote "doesn't
+show", and the two richest cases handed over four next checks. The run of 2026-09-21 (2.1.278,
+main) had followed the template verbatim in all six.
+
+Two things changed between the runs: this branch, and the model behind `model: opus`. The Claude
+Code changelog dates the second one: in 2.1.280 (2026-09-22) the `opus` alias started resolving to
+Claude Opus 5.5. The branch's edits to the skill do not touch the format, and the drift is uniform
+across the six cases, including the case with no trace and therefore no diagram step - the pattern
+of a different writer, not of a new step. Attribution stays a hypothesis until a control run of one
+case on `main` with the new model; the mechanism, at least, is named this time (D12's lesson).
+
+The fix is in the product, as in D13, and no grader was relaxed: the report format is now stated as
+a contract rather than an example - titles verbatim (with the Portuguese equivalents spelled out so
+"in the user's language" cannot become "in your own words"), the level alone in capitals on the
+first line of Confidence, the diagram line copied exactly, and a five-point self-check the agent
+runs before sending. Pinning the agent to the previous model was considered and rejected: it would
+fix the score and leave every real user on the new model with the drift.
