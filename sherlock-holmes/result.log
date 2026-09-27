@@ -10,3 +10,15 @@ CASE                           SCORE PASS% RUNS COST    NOTES
 6 case(s) · 481s · $2.47
 
 Re-run with --keep-temp to preserve each run's sandbox (workspace + trace.jsonl) for debugging.
+
+CASE                           SCORE PASS% RUNS COST    NOTES
+01-downstream-503              1.00  100%  1    $0.38   
+02-db-timeout-retries          0.89  0%    1    $0.38   confidence-stated: pattern not found in last_message
+03-error-only-in-tempo         0.89  0%    1    $0.42   confidence-stated: pattern not found in last_message
+04-contradictory-logs          0.89  0%    1    $0.44   confidence-stated: pattern not found in last_message
+05-incomplete-trace            0.89  0%    1    $0.41   confidence-stated: pattern not found in last_message
+06-intermediate-service-error  1.00  100%  1    $0.37   
+
+6 case(s) · 470s · $2.40
+
+Re-run with --keep-temp to preserve each run's sandbox (workspace + trace.jsonl) for debugging.

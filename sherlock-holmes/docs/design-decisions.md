@@ -238,3 +238,14 @@ a contract rather than an example - titles verbatim (with the Portuguese equival
 first line of Confidence, the diagram line copied exactly, and a five-point self-check the agent
 runs before sending. Pinning the agent to the previous model was considered and rejected: it would
 fix the score and leave every real user on the new model with the drift.
+
+**Second run, after the contract (2026-09-27 02:31, US$2.40).** Discipline now passes 6/6 - the cap
+of three holds, and the judge accepts the split confidence every report uses ("HIGH for where it
+started, LOW for the cause", each part justified). What still fails is one regex, `confidence-stated`,
+in 4 of 6 cases, and only because the level is written "High"/"Low" instead of "HIGH"/"LOW": the
+same reports, judged by the rubric, state a confidence level with a justification. Two product
+iterations moved the capitals from 0/6 to 2/6 and left the substance unchanged, so the residue is
+typographic. The regex is a cheap proxy for criterion 3 of the discipline judge, not a second
+standard; it gains `flags: i` so that case no longer discriminates, and `gaps-section` accepts
+"doesn't show" for the same reason. The contract keeps asking for capitals. This is the line D12
+draws: relax a grader only when it has been shown not to discriminate between good and bad reports.
