@@ -242,7 +242,7 @@ def build_map(agg: dict, stats: dict, window: dict, n_search: int, n_drawn: int,
         "schema_version": td.SCHEMA_VERSION, "diagram_type": "sequence",
         "meta": {"title": td.clean(f"Window map · {window['start'][:16].replace('T', ' ')} → {window['end'][11:16]} UTC", 80),
                  "subtitle": "evidence only: calls as recorded in traces with an error span; no causal claim",
-                 "viewBox": [width, last_y + 300], "animation": "trace", "quality_profile": quality,
+                 "viewBox": [width, max(td.MIN_VIEWBOX_H, last_y + 300)], "animation": "trace", "quality_profile": quality,
                  "column_fit": "spread", "views": views,
                  "legend": td.legend({"default": "call", "security": "has errors", "dashed": "queue"})},
         "participants": participants, "messages": messages, "activations": [], "cards": cards,
@@ -278,6 +278,10 @@ def window_map(args) -> dict:
     spec = build_map(agg, stats, window, total, len(found), missing, args.quality)
     if spec is None:
         result.update(status="skipped", reason="the sampled traces recorded no call between services: nothing to map")
+        return result
+    reason = td.drawable(spec)
+    if reason:
+        result.update(status="skipped", reason=reason)
         return result
     result["arrows"] = len(spec["messages"])
     names = {pp["id"]: pp["label"] for pp in spec["participants"]}

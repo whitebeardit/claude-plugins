@@ -36,6 +36,19 @@ SCHEMA_VERSION = 1
 MAX_MESSAGES = 40            # above this the diagram stops being readable; see cap()
 Y0, STEP = 170, 44           # archify requires messages[].y >= 160
 VIEWBOX_WIDTH = 900
+# archify's sequence schema: at least 2 participants and 1 message, and a viewBox at least 480 high.
+MIN_PARTICIPANTS, MIN_MESSAGES, MIN_VIEWBOX_H = 2, 1, 480
+
+
+def drawable(seq: dict) -> str | None:
+    """None when archify's sequence schema can take `seq`, else the reason it cannot, in words."""
+    n_parts, n_msgs = len(seq.get("participants") or []), len(seq.get("messages") or [])
+    if n_parts >= MIN_PARTICIPANTS and n_msgs >= MIN_MESSAGES:
+        return None
+    return (f"nothing to draw as a sequence: {n_parts} participant(s) and {n_msgs} call(s) between them "
+            f"(archify needs at least {MIN_PARTICIPANTS} and {MIN_MESSAGES}); the span tree above is the whole trace")
+
+
 # Measured on archify 2.17 (2026-09-27): the participant box is ~viewBox/n - 47px, a label costs
 # ~6.8px per character, and the showcase profile refuses a viewBox wider than ~1050px (it must fit
 # a 1440px desktop at >= 0.85 scale). So the canvas grows 210px per participant up to that ceiling,
@@ -387,7 +400,7 @@ def build_sequence(doc: dict, max_messages: int = MAX_MESSAGES, quality: str = "
         "schema_version": SCHEMA_VERSION, "diagram_type": "sequence",
         "meta": {"title": clean(f'Trace {tid[:16]}… · {root.get("service")} {root.get("operation")}', 80),
                  "subtitle": f"trace {tid} · evidence only: spans as recorded, no causal claim",
-                 "viewBox": [width, last_y + 300], "animation": "trace",
+                 "viewBox": [width, max(MIN_VIEWBOX_H, last_y + 300)], "animation": "trace",
                  "quality_profile": quality, "column_fit": "spread", "views": views, "legend": legend()},
         "participants": participants, "messages": messages, "activations": activations, "cards": cards,
     }
@@ -475,6 +488,10 @@ def render(doc: dict, out_html: Path, archify: str | None = None, quality: str =
     seq = build_sequence(doc, max_messages, quality)
     if seq is None:
         result.update(status="skipped", reason=f"no spans to draw: Tempo status is {(doc.get('tempo') or {}).get('status', 'unknown')}")
+        return result
+    reason = drawable(seq)
+    if reason:
+        result.update(status="skipped", reason=reason)
         return result
     result["messages"] = len(seq["messages"])
     for c in seq["cards"]:

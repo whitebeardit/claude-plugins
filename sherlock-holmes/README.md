@@ -109,7 +109,8 @@ never authors it, no cause is drawn, and the "first span to fail" chapter says s
 being first is a fact, being the cause is the investigator's call. Labels come from an allowlist of
 span attributes (operation, method, route, status code, peer name, `db.system`), so `db.statement`,
 URLs with ids and headers never reach the file. The report carries a `**Diagram:**` line with the
-path, or the one-line reason when none was generated.
+path, or the one-line reason when none was generated. A trace with no call between services - one span, or spans inside a single service - has
+nothing to draw as a sequence; the reason line says so and the span tree in the report is the whole trace.
 
 Rendering uses [archify](https://github.com/tt-a1i/archify) (MIT), an optional dependency: Node 18+
 and the archify skill, installed once with
