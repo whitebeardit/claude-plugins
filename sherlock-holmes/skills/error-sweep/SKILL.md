@@ -2,7 +2,7 @@
 name: error-sweep
 description: List the errors of a time window - without a trace id - as a fixed, numbered table of facts from Grafana Tempo (spans with error status) and Grafana Loki (error lines grouped by a masked message signature), then let the user choose what to see - the sequence diagram of an example trace, or a full investigation with trace-debug. Use when the user asks whether there were errors in a period ("any errors in the last 2 hours?", "what failed in payment-service yesterday afternoon?", "sweep the logs for errors"). Deterministic - no model judges severity or cause. Read-only. The table is the answer - show it to the user exactly as printed, in full, without summarizing, reordering or commenting on it.
 argument-hint: "[--last 2h | --start <t> --end <t>] [--service <name>] [--fixture <dir>]"
-allowed-tools: Bash(python3 *sweep-errors.py*) Bash(python3 *collect-trace.py*) Bash(python3 *trace-diagram.py*) Bash(python3 *window-map.py*) Read
+allowed-tools: Bash(python3 *sweep-errors.py*) Bash(python3 *collect-trace.py*) Bash(python3 *trace-diagram.py*) Bash(python3 *window-map.py*) Read Bash(python *sweep-errors.py*) Bash(py -3 *sweep-errors.py*) Bash(python *collect-trace.py*) Bash(py -3 *collect-trace.py*) Bash(python *trace-diagram.py*) Bash(py -3 *trace-diagram.py*) Bash(python *window-map.py*) Bash(py -3 *window-map.py*)
 ---
 
 # Error sweep
@@ -19,6 +19,14 @@ absolute times you used.
 (`cascade`, `timeouts`, `silence`), each with its own window. When the user asks for the demo,
 sample or bundled fixtures, pass that absolute path to `--fixture`, resolved under
 `${CLAUDE_PLUGIN_ROOT}`, never the working directory.
+
+**Python command.** The commands below start with `python3`. If the shell answers "command not
+found", or `python3` opens the Microsoft Store (Windows, where the python.org installer provides
+`python` and `py` instead), run the same command with `python` in place of `python3` - or `py -3` -
+and change nothing else; keep using that one for the rest of the session. If none of the three
+exists, stop and tell the user: install Python 3.8+ (on Windows from python.org, ticking "Add
+python.exe to PATH"), then fully close and reopen the editor or terminal that runs Claude Code, since
+it reads PATH only when it starts.
 
 ## 1. Sweep
 

@@ -7,6 +7,8 @@ import importlib.util
 import io
 import json
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -311,6 +313,107 @@ class ConfigFlagTests(unittest.TestCase):
         help_text = ct.build_parser().format_help().lower()
         for forbidden in ("--grafana-token", "--token", "--password", "--loki-token"):
             self.assertNotIn(forbidden, help_text)
+
+
+class SetupTests(unittest.TestCase):
+    """First-run help, from a Windows + VS Code install (2026-09-29): the user could not tell which
+    settings reached the plugin, nor from where, and python3 printed nothing on a cp1252 console."""
+
+    VARS = list(ct.CONFIG_FLAGS.values()) + ["GRAFANA_TOKEN", "GRAFANA_SERVICE_ACCOUNT_TOKEN", "GRAFANA_USERNAME",
+                                             "GRAFANA_PASSWORD", "LOKI_URL", "TEMPO_URL"] + \
+        [f"CLAUDE_PLUGIN_OPTION_{k.upper()}" for k in ct.PLUGIN_OPTIONS]
+
+    def setUp(self):
+        self.saved = {k: os.environ.get(k) for k in self.VARS}
+        for k in self.VARS:
+            os.environ.pop(k, None)
+
+    def tearDown(self):
+        for k, v in self.saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+    def parse(self, argv):
+        return ct.build_parser().parse_args(["doctor"] + argv)
+
+    def test_nothing_set_says_start_with_the_url(self):
+        ct.apply_config_flags(self.parse([]))
+        r = ct.setup_report()
+        self.assertEqual(set(r["settings"].values()), {"missing"})
+        self.assertTrue(r["next"].startswith("set GRAFANA_URL"))
+        self.assertIn("settings.json", r["next"])
+
+    def test_plugin_option_env_is_read_when_nothing_else_is_set(self):
+        os.environ["CLAUDE_PLUGIN_OPTION_GRAFANA_URL"] = "https://from-option"
+        ct.apply_config_flags(self.parse([]))
+        self.assertEqual(os.environ["GRAFANA_URL"], "https://from-option")
+        self.assertEqual(ct.setup_report()["settings"]["GRAFANA_URL"], "set, from /config")
+
+    def test_config_value_wins_over_the_environment(self):
+        os.environ["LOKI_SELECTOR"] = '{a="env"}'
+        ct.apply_config_flags(self.parse([]))
+        self.assertEqual(os.environ["LOKI_SELECTOR"], '{a="env"}')
+        self.assertEqual(ct.setup_report()["settings"]["LOKI_SELECTOR"], "set, from environment")
+        os.environ["CLAUDE_PLUGIN_OPTION_LOKI_SELECTOR"] = '{a="option"}'
+        ct.apply_config_flags(self.parse([]))
+        self.assertEqual(os.environ["LOKI_SELECTOR"], '{a="option"}')
+        self.assertEqual(ct.setup_report()["settings"]["LOKI_SELECTOR"], "set, from /config")
+        ct.apply_config_flags(self.parse(["--selector", '{a="flag"}']))
+        self.assertEqual(os.environ["LOKI_SELECTOR"], '{a="flag"}')
+
+    def test_placeholder_plugin_option_is_ignored(self):
+        os.environ["CLAUDE_PLUGIN_OPTION_GRAFANA_TEMPO_UID"] = "${user_config.grafana_tempo_uid}"
+        ct.apply_config_flags(self.parse([]))
+        self.assertNotIn("GRAFANA_TEMPO_UID", os.environ)
+
+    def test_token_value_never_appears_and_next_step_walks_the_order(self):
+        os.environ["GRAFANA_URL"] = "https://g"
+        ct.apply_config_flags(self.parse([]))
+        self.assertTrue(ct.setup_report()["next"].startswith("set GRAFANA_TOKEN"))
+        os.environ["GRAFANA_TOKEN"] = "glsa_supersecret"
+        ct.apply_config_flags(self.parse([]))
+        r = ct.setup_report()
+        self.assertNotIn("supersecret", json.dumps(r))
+        self.assertEqual(r["settings"]["GRAFANA_TOKEN"], "set, from environment; value hidden")
+        self.assertIn("uid", r["next"])
+        os.environ["GRAFANA_LOKI_UID"] = "l"; os.environ["GRAFANA_TEMPO_UID"] = "t"
+        ct.apply_config_flags(self.parse([]))
+        self.assertIn("selector", ct.setup_report()["next"])
+        os.environ["LOKI_SELECTOR"] = '{a="b"}'
+        ct.apply_config_flags(self.parse([]))
+        self.assertTrue(ct.setup_report()["next"].startswith("none"))
+
+    def test_report_names_the_python_that_runs_it(self):
+        r = ct.setup_report()
+        self.assertIn(sys.executable, r["python"])
+        self.assertNotIn("too old", r["python"])
+
+    def test_windows_code_page_does_not_break_any_script(self):
+        """cp1252 cannot encode the arrows in the reports; every script must still exit cleanly."""
+        env = dict(os.environ, PYTHONIOENCODING="cp1252", PYTHONUTF8="0")
+        scripts = ROOT / "skills" / "trace-debug" / "scripts"
+        with tempfile.TemporaryDirectory() as tmp:
+            env["TMPDIR"] = tmp
+            runs = [
+                [str(scripts / "sweep-errors.py"), "--fixture", str(ROOT / "skills" / "error-sweep" / "fixtures" / "cascade"), "--format", "table"],
+                [str(scripts / "collect-trace.py"), "--trace-id", "2aa803b2e40c97a2490d754a465fe9de",
+                 "--fixture", str(ROOT / "evals" / "fixtures" / "01-downstream-503"), "--format", "prompt"],
+            ]
+            for argv in runs:
+                r = subprocess.run([sys.executable] + argv, capture_output=True, env=env, timeout=60)
+                self.assertNotIn(b"UnicodeEncodeError", r.stderr, argv[0])
+                self.assertEqual(r.returncode, 0, r.stderr[-300:])
+
+    def test_default_output_goes_to_the_os_temp_dir_without_tmpdir(self):
+        env = {k: v for k, v in os.environ.items() if k != "TMPDIR"}
+        out = subprocess.run([sys.executable, "-c", "import tempfile;print(tempfile.gettempdir())"],
+                             capture_output=True, text=True, env=env).stdout.strip()
+        r = subprocess.run([sys.executable, str(SCRIPT), "--trace-id", "2aa803b2e40c97a2490d754a465fe9de",
+                            "--fixture", str(ROOT / "evals" / "fixtures" / "01-downstream-503"), "--format", "prompt"],
+                           capture_output=True, text=True, env=env, timeout=60)
+        self.assertIn(str(Path(out) / "trace-debug"), r.stdout)
 
 
 if __name__ == "__main__":
