@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.3](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.6.2...sherlock-holmes-v0.6.3) (2026-09-29)
+
+
+### Bug Fixes
+
+* **sherlock-holmes:** work with archify 3 and fix the Linux prerequisites ([#25](https://github.com/whitebeardit/claude-plugins/issues/25)) ([0d16794](https://github.com/whitebeardit/claude-plugins/commit/0d167941cfa5cd2f8ecec1d973aebc953633ed40))
+
 ## [0.6.2](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.6.1...sherlock-holmes-v0.6.2) (2026-09-29)
 
 
