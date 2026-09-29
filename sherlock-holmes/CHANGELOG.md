@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.6.1...sherlock-holmes-v0.6.2) (2026-09-29)
+
+
+### Bug Fixes
+
+* **sherlock-holmes:** first run on Windows and VS Code - python fallback, UTF-8 output, doctor says what reached the plugin ([#23](https://github.com/whitebeardit/claude-plugins/issues/23)) ([0c4666a](https://github.com/whitebeardit/claude-plugins/commit/0c4666a6daf720a79ca461042878208cb497e125))
+
 ## [0.6.1](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.6.0...sherlock-holmes-v0.6.1) (2026-09-29)
 
 
