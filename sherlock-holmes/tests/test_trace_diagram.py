@@ -341,6 +341,43 @@ class ErrorSemanticsTest(unittest.TestCase):
         self.assertEqual(red, {"api", "payment-service", "customer-service"}, "every server span with error status, root included")
 
 
+class TooSmallToDrawTest(unittest.TestCase):
+    """archify's sequence schema needs 2 participants, 1 message and a viewBox >= 480 high.
+    Found on Windows (2026-09-29): a one-span trace went to archify and came back as a schema error."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_single_span_is_skipped_with_a_reason_and_never_reaches_archify(self):
+        doc = doc_with([span("a", "parent-outside", "DeliveryMonitorApi", "GET api/outbound/x", "SERVER", T0, T0 + 101_000_000)],
+                       missing_parent=["a"])
+        seq = td.build_sequence(doc)
+        self.assertEqual((len(seq["participants"]), len(seq["messages"])), (1, 0))
+        self.assertIn("nothing to draw", td.drawable(seq))
+        r = td.render(doc, Path(self.tmp.name) / "x.html", archify="/nonexistent/archify.mjs")
+        self.assertEqual(r["status"], "skipped")
+        self.assertIn("1 participant(s) and 0 call(s)", r["reason"])
+        self.assertIsNone(r["sequence"])        # stopped before writing or calling archify
+        self.assertTrue(td.summary_line(r).startswith("diagram: not generated - nothing to draw"))
+
+    def test_spans_inside_one_service_only_are_skipped(self):
+        doc = doc_with([span("a", None, "api", "GET /x", "SERVER", T0, T0 + 50_000_000),
+                        span("b", "a", "api", "render", "INTERNAL", T0 + 1_000_000, T0 + 2_000_000)])
+        self.assertIsNotNone(td.drawable(td.build_sequence(doc)))
+
+    def test_one_call_is_the_smallest_drawable_trace_and_the_height_has_a_floor(self):
+        doc = doc_with([span("a", None, "api", "GET /x", "SERVER", T0, T0 + 50_000_000),
+                        span("b", "a", "api", "SELECT", "CLIENT", T0 + 1_000_000, T0 + 2_000_000,
+                             attrs={"db.system": "postgresql"})])
+        seq = td.build_sequence(doc)
+        self.assertIsNone(td.drawable(seq))
+        self.assertGreaterEqual(len(seq["messages"]), 1)
+        self.assertGreaterEqual(seq["meta"]["viewBox"][1], td.MIN_VIEWBOX_H)
+
+
 class CapTest(unittest.TestCase):
     def _wide_trace(self, calls: int, failing: int):
         spans = [span("root", None, "edge", "GET /wide", "SERVER", T0, T0 + calls * 20_000_000)]
