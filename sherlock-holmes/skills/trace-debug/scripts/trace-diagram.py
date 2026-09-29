@@ -7,8 +7,9 @@ self-contained HTML file. Deterministic and evidence-only: every participant, me
 and card comes from spans as recorded, plus log lines the collector already joined to spans.
 Nothing is inferred and no cause is drawn. The agent never authors the diagram.
 
-archify (https://github.com/tt-a1i/archify, MIT) is an optional runtime dependency: Node >= 18 and
-the archify skill installed (`npx skills add tt-a1i/archify -g`), or ARCHIFY_BIN pointing at its
+archify (https://github.com/tt-a1i/archify, MIT, 2.17 or 3.x) is an optional runtime dependency:
+Node >= 18 and the archify skill installed (`npx skills add tt-a1i/archify -g`, which itself needs
+Node >= 22), or ARCHIFY_BIN pointing at its
 `archify.mjs`. Without it the investigation is unchanged; this script only says why the diagram was
 not generated. It never reaches the network: the archify update check is disabled for the call.
 
@@ -54,6 +55,12 @@ def utf8_stdio() -> None:
 def work_dir() -> Path:
     """Where reports and diagrams go by default: $TMPDIR/trace-debug, or the OS temp dir (Windows)."""
     return Path(os.environ.get("TMPDIR") or tempfile.gettempdir()) / "trace-debug"
+
+
+def output_name(html_path: Path) -> str:
+    """archify 3 requires meta.output: the HTML file name, as a portable relative path. archify 2.17
+    accepts it too. The command line still says where the file goes."""
+    return html_path.name
 
 
 def drawable(seq: dict) -> str | None:
@@ -456,7 +463,7 @@ def find_archify(explicit: str | None = None) -> tuple[Path | None, str]:
     w = shutil.which("archify")
     if w:
         return Path(w), "found"
-    return None, "archify not found: set ARCHIFY_BIN to its archify.mjs or install it with `npx skills add tt-a1i/archify -g`"
+    return None, "archify not found: set ARCHIFY_BIN to its archify.mjs or install it with `npx skills add tt-a1i/archify -g` (the installer needs Node 22+)"
 
 
 def archify_status(explicit: str | None = None) -> dict:
@@ -518,6 +525,7 @@ def render(doc: dict, out_html: Path, archify: str | None = None, quality: str =
     status = archify_status(archify)
     result["archify"] = status["archify"]
     seq_path = out_html.with_suffix(".sequence.json")
+    seq["meta"]["output"] = output_name(out_html)
     try:
         out_html.parent.mkdir(parents=True, exist_ok=True)
         seq_path.write_text(json.dumps(seq, indent=1, ensure_ascii=False), encoding="utf-8")
@@ -533,6 +541,7 @@ def render(doc: dict, out_html: Path, archify: str | None = None, quality: str =
     for q, compact in attempts:
         spec = build_sequence(doc, max_messages, q, compact=compact) if compact else seq
         spec["meta"]["quality_profile"] = q
+        spec["meta"]["output"] = output_name(out_html)
         seq_path.write_text(json.dumps(spec, indent=1, ensure_ascii=False), encoding="utf-8")
         r = deliver(Path(status["archify"]), status["node"], seq_path, out_html, q)
         if r["ok"]:

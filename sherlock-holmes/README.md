@@ -112,8 +112,9 @@ URLs with ids and headers never reach the file. The report carries a `**Diagram:
 path, or the one-line reason when none was generated. A trace with no call between services - one span, or spans inside a single service - has
 nothing to draw as a sequence; the reason line says so and the span tree in the report is the whole trace.
 
-Rendering uses [archify](https://github.com/tt-a1i/archify) (MIT), an optional dependency: Node 18+
-and the archify skill, installed once with
+Rendering uses [archify](https://github.com/tt-a1i/archify) (MIT), an optional dependency: the
+archify skill, installed once with the command below. The installer needs Node 22+; archify itself
+then runs on Node 18+, and both archify 2.17 and 3.x work.
 
 ```bash
 npx skills add tt-a1i/archify -g        # or: export ARCHIFY_BIN=/path/to/archify/bin/archify.mjs
@@ -192,11 +193,13 @@ so a program installed while it is open stays invisible to it. This is the one r
 | | Needed for | macOS / Linux | Windows |
 | --- | --- | --- | --- |
 | **Claude Code** | everything | terminal, VS Code or JetBrains | same, plus [Git for Windows](https://git-scm.com/downloads/win) (Claude Code runs commands in Git Bash) |
-| **Python 3.8+** | everything | usually present: `python3 --version` | [python.org](https://www.python.org/downloads/windows/) installer, tick **Add python.exe to PATH**; check with `python --version` |
-| **Node 18+** (with `npx`) | only the diagram | [nodejs.org](https://nodejs.org) LTS or your package manager | [nodejs.org](https://nodejs.org) LTS installer; check with `node --version` |
+| **Python 3.8+** | everything | check with `python3 --version`; if missing: `sudo apt install python3` (Debian/Ubuntu), `sudo dnf install python3` (Fedora), `brew install python` (macOS) | [python.org](https://www.python.org/downloads/windows/) installer, tick **Add python.exe to PATH**; check with `python --version` |
+| **Node 22+** (with `npx`) | only the diagram | [nodejs.org](https://nodejs.org) LTS, or [nvm](https://github.com/nvm-sh/nvm): `nvm install --lts`. Not the distribution package: Ubuntu 22.04 installs Node 12 and 24.04 Node 18, too old for the archify installer | [nodejs.org](https://nodejs.org) LTS installer |
 | **Grafana service account token** | live data | Viewer role is enough | same |
 
-No Python packages are needed: the scripts use the standard library only. On Windows the skills call
+Check Node with `node --version`: the archify installer needs 22 or newer (it fails on 18 with
+`does not provide an export named 'styleText'`). No Python packages are needed: the scripts use the
+standard library only. On Windows the skills call
 `python3` and fall back to `python` or `py -3` when `python3` is missing or opens the Microsoft
 Store. If Windows opens the Store anyway, turn off the `python3.exe` entry under *Settings → Apps →
 Advanced app settings → App execution aliases*.
@@ -207,7 +210,7 @@ terminal: slash commands are typed in the Claude panel, and `/config` opens the 
 ## Quick setup
 
 Six steps from nothing to a real investigation, plus an optional seventh for the diagram. Steps 1 and 2 need no Loki and no Tempo.
-Requirements: see [Prerequisites](#prerequisites) - Claude Code and Python 3.8+ (Node 18+ only for the optional diagram). Installed by your organization? Start at [step 2](#installed-by-your-organization).
+Requirements: see [Prerequisites](#prerequisites) - Claude Code and Python 3.8+ (Node 22+ only for the optional diagram). Installed by your organization? Start at [step 2](#installed-by-your-organization).
 
 Or let the plugin guide you: after step 1, run
 
@@ -217,8 +220,8 @@ Or let the plugin guide you: after step 1, run
 
 It does steps 3 to 7 in one conversation - checks access with the doctor, finds the datasource UIDs,
 proposes the selector from the labels your Loki really has, hands you the exact `/config` values, and
-offers to install archify (only after you say yes). The two things it cannot do for you are export the
-token and fill `/config`: those stay yours, by design of the plugin system.
+offers to install archify (only after you say yes). The two things it cannot do for you are put the
+token in `~/.claude/settings.json` and fill `/config`: those stay yours, by design of the plugin system.
 
 **1 — Install.** In Claude Code:
 
@@ -281,7 +284,7 @@ your labels are almost certainly different — and put it in *Loki stream select
 /sherlock-holmes:trace-debug <trace-id>
 ```
 
-**7 — Optional: the diagram.** Install [archify](https://github.com/tt-a1i/archify) once (Node 18+;
+**7 — Optional: the diagram.** Install [archify](https://github.com/tt-a1i/archify) once (Node 22+;
 this also installs its `archify-review` companion skill, which the plugin does not use):
 
 ```bash
@@ -467,7 +470,7 @@ Flags after the trace id go to the collector unchanged: `--around <time>`, `--st
 
 **Project priors.** Put a `.claude/trace-debug/priors.md` in your project with the behaviours that are normal for your system: expected retries, known noisy lines, sampling rules ("ingestion traces are never sampled"), dependencies that time out by design. The agent reads it before forming hypotheses and treats it as team context, not as evidence about the trace.
 
-**Permissions.** The skills pre-approve exactly four command shapes - `python3 *collect-trace.py*`, `python3 *trace-diagram.py*`, `python3 *sweep-errors.py*` and `python3 *window-map.py*` - plus `Read`. If your permission mode still prompts, allow those patterns in your settings. The agent has no other tools. `setup` runs one command that is deliberately not pre-approved, `npx skills add tt-a1i/archify -g`, and only after you say yes: the permission prompt is the consent.
+**Permissions.** The skills pre-approve exactly four scripts - `collect-trace.py`, `trace-diagram.py`, `sweep-errors.py` and `window-map.py` - run as `python3 <script>`, or as `python` / `py -3` where `python3` does not exist (Windows), plus `Read`. If your permission mode still prompts, allow those patterns in your settings. The agent has no other tools. `setup` runs one command that is deliberately not pre-approved, `npx skills add tt-a1i/archify -g`, and only after you say yes: the permission prompt is the consent.
 
 ## Semantics the agent relies on
 

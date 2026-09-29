@@ -432,6 +432,18 @@ class ArchifyTest(unittest.TestCase):
         path, why = td.find_archify()
         self.assertEqual(path, fake); self.assertEqual(why, "found")
 
+    def test_spec_names_its_output_for_archify_3(self):
+        """archify 3.0 refuses a spec without meta.output (a portable relative .html path)."""
+        doc = doc_with([span("a", None, "api", "GET /x", "SERVER", T0, T0 + 50_000_000),
+                        span("b", "a", "api", "SELECT", "CLIENT", T0 + 1_000_000, T0 + 2_000_000,
+                             attrs={"db.system": "postgresql"})])
+        self._no_archify()
+        out = Path(self.tmp.name) / "sub dir" / "4bf92f35.html"
+        r = td.render(doc, out)
+        spec = json.loads(Path(r["sequence"]).read_text(encoding="utf-8"))
+        self.assertEqual(spec["meta"]["output"], "4bf92f35.html")
+        self.assertNotIn("/", spec["meta"]["output"])
+
     def test_render_skips_without_spans(self):
         r = td.render({"trace_id": "x", "tempo": {"status": "not_found", "spans": []}, "loki": {}, "facts": {}}, Path(self.tmp.name) / "x.html")
         self.assertEqual(r["status"], "skipped")
