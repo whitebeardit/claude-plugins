@@ -355,4 +355,5 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
+    td.utf8_stdio()
     sys.exit(main())

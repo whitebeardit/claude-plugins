@@ -4,7 +4,7 @@ description: Investigate a production incident from a trace ID using Grafana Lok
 argument-hint: "<trace-id> [--around <time>] [--lookback <dur>] [--fixture <dir>]"
 context: fork
 agent: sherlock-holmes
-allowed-tools: Bash(python3 *collect-trace.py*) Bash(python3 *trace-diagram.py*) Read
+allowed-tools: Bash(python3 *collect-trace.py*) Bash(python3 *trace-diagram.py*) Read Bash(python *collect-trace.py*) Bash(py -3 *collect-trace.py*) Bash(python *trace-diagram.py*) Bash(py -3 *trace-diagram.py*)
 ---
 
 # Trace debug
@@ -14,6 +14,14 @@ Investigate the trace given in `$ARGUMENTS`. The first token is the trace id (16
 **Bundled fixtures.** This plugin ships recorded Loki and Tempo responses for six scenarios, so it can be tried with no backend configured. They live at `${CLAUDE_PLUGIN_ROOT}/evals/fixtures/<case>/`, where `<case>` is one of `01-downstream-503`, `02-db-timeout-retries`, `03-error-only-in-tempo`, `04-contradictory-logs`, `05-incomplete-trace`, `06-intermediate-service-error`. When the user names one of those, or otherwise asks for the bundled, sample or demo fixtures, pass that absolute path to `--fixture` — resolve it under `${CLAUDE_PLUGIN_ROOT}`, never relative to the working directory, which is usually somewhere else entirely. Say in the report that the evidence came from recorded fixtures, not a live backend.
 
 The collector is deterministic and read-only. It collects facts; you interpret them.
+
+**Python command.** The commands below start with `python3`. If the shell answers "command not
+found", or `python3` opens the Microsoft Store (Windows, where the python.org installer provides
+`python` and `py` instead), run the same command with `python` in place of `python3` - or `py -3` -
+and change nothing else; keep using that one for the rest of the session. If none of the three
+exists, stop and tell the user: install Python 3.8+ (on Windows from python.org, ticking "Add
+python.exe to PATH"), then fully close and reopen the editor or terminal that runs Claude Code, since
+it reads PATH only when it starts.
 
 ## 1. Collect
 

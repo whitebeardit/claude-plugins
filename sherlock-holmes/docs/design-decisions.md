@@ -372,3 +372,30 @@ error status or an HTTP code draws plain, and a red arrow is not "the cause" - t
 is still a fact, the cause is still the investigator's call. Legend labels are short on purpose:
 archify measures them narrower than they render, and long ones overlap the next entry.
 
+
+## D24. First run on Windows and in VS Code: say what reached the plugin, from where
+
+Reported by a user on Windows with the VS Code extension and an organization-installed plugin
+(2026-09-29): no Python, no Node, and no way to tell whether the Grafana settings reached the
+plugin, so every attempt meant closing and reopening VS Code. Three causes, three changes:
+
+- **The interpreter.** Skills call `python3`; the python.org installer for Windows provides `python`
+  and `py`, and `python3` may open the Microsoft Store. The skills now say to fall back to `python`
+  or `py -3` with the same arguments, and their `allowed-tools` pre-approve those forms too.
+- **The console.** Windows pipes default to cp1252, which cannot encode the arrows in the reports:
+  `sweep-errors.py` crashed with `UnicodeEncodeError`. Every script now forces UTF-8 on stdout and
+  stderr; a test runs them with `PYTHONIOENCODING=cp1252`. Default output goes to the OS temp dir
+  (`tempfile.gettempdir()`), not a hard-coded `/tmp`. The suite also passes on Python 3.8, the
+  documented minimum.
+- **The settings.** The token belongs in the `env` block of `~/.claude/settings.json`: it works the
+  same in the terminal, VS Code and JetBrains on every OS, and a new conversation sees it without an
+  editor restart, unlike an OS variable, which an editor only reads when it starts. The collector
+  also reads the `/config` values Claude Code exports as `CLAUDE_PLUGIN_OPTION_<KEY>`, so they arrive
+  even when a skill's `${user_config.*}` text is not substituted; `/config` still wins over the
+  environment. The doctor opens with a `setup` block - the Python that ran it, each setting as `set,
+  from /config`, `set, from environment` or `missing` (the token's value is never printed), and the
+  one `next` step - so "did my setting arrive?" has an answer without guessing.
+
+A plugin cannot declare Python or Node as prerequisites (the manifest has no such field), so the
+README now opens its setup with a per-OS prerequisites table and one rule: install first, then close
+and reopen the editor once.

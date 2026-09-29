@@ -29,6 +29,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
@@ -473,7 +474,7 @@ def render_table(doc: dict) -> str:
 def default_out(doc: dict) -> Path:
     w = doc["window"]
     stamp = lambda s: re.sub(r"[^0-9TZ]", "", s or "")
-    return Path(os.environ.get("TMPDIR", "/tmp")) / "trace-debug" / f"sweep-{stamp(w['start'])}-{stamp(w['end'])}.json"
+    return Path(os.environ.get("TMPDIR") or tempfile.gettempdir()) / "trace-debug" / f"sweep-{stamp(w['start'])}-{stamp(w['end'])}.json"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -526,4 +527,9 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
+    for _s in (sys.stdout, sys.stderr):  # Windows code pages cannot print the report's arrows
+        try:
+            _s.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
     sys.exit(main())

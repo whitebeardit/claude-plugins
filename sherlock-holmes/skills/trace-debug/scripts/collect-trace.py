@@ -38,6 +38,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -831,8 +832,9 @@ def render_prompt(doc: dict, budget_lines: int, budget_spans: int, out_path) -> 
 # --------------------------------------------------------------------------- doctor
 
 def doctor(args) -> int:
-    report = {"collector_version": VERSION, "fixture": None, "loki": {}, "tempo": {}, "config": {}}
+    report = {"collector_version": VERSION, "setup": {}, "fixture": None, "loki": {}, "tempo": {}, "config": {}}
     ignored = apply_config_flags(args)
+    report["setup"] = setup_report()
     if ignored:
         report["ignored_empty_flags"] = ignored
     env = os.environ
@@ -909,6 +911,16 @@ def doctor(args) -> int:
     return 0 if ok else 1
 
 
+def utf8_stdio() -> None:
+    """Windows consoles and pipes default to a legacy code page (cp1252) that cannot print the
+    arrows and dots in these reports; force UTF-8 so the output never raises UnicodeEncodeError."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
 # --------------------------------------------------------------------------- main
 
 def build_parser() -> argparse.ArgumentParser:
@@ -957,23 +969,93 @@ CONFIG_FLAGS = {
 }
 
 
-def apply_config_flags(args) -> list:
-    """Fold the configuration flags into the environment the rest of the script reads.
+# userConfig key (plugin.json) -> the variable the collector reads. Claude Code exports each
+# non-sensitive plugin option to commands as CLAUDE_PLUGIN_OPTION_<KEY>.
+PLUGIN_OPTIONS = {
+    "grafana_url": "GRAFANA_URL",
+    "grafana_loki_uid": "GRAFANA_LOKI_UID",
+    "grafana_tempo_uid": "GRAFANA_TEMPO_UID",
+    "loki_selector": "LOKI_SELECTOR",
+    "loki_trace_filter": "LOKI_TRACE_FILTER",
+    "loki_trace_field": "LOKI_TRACE_FIELD",
+}
+CONFIG_SOURCES: dict = {}                   # variable -> where its value came from (for the doctor)
+SETTINGS_ENV = 'the "env" block of ~/.claude/settings.json (a new session sees it; no editor restart)'
 
-    A value that is empty, or that still contains an unsubstituted ${...} placeholder, is
-    discarded: a plugin install dialog left blank must not turn into a literal setting.
+
+def _usable(value) -> str | None:
+    value = (value or "").strip()
+    return value if value and "${" not in value else None
+
+
+def apply_config_flags(args) -> list:
+    """Fold the configuration into the environment the rest of the script reads.
+
+    Precedence: the /config value - passed by the skill as a flag, or exported by Claude Code as
+    CLAUDE_PLUGIN_OPTION_<KEY> - then an environment variable (the shell, or the env block of Claude
+    Code's settings.json). A value that is empty, or that
+    still contains an unsubstituted ${...} placeholder, is discarded: a plugin install dialog left
+    blank must not turn into a literal setting.
     """
     ignored = []
+    CONFIG_SOURCES.clear()
+    for var in set(CONFIG_FLAGS.values()) | {"GRAFANA_TOKEN", "GRAFANA_SERVICE_ACCOUNT_TOKEN", "LOKI_URL", "TEMPO_URL"}:
+        if _usable(os.environ.get(var)):
+            CONFIG_SOURCES[var] = "environment"
+    for key, var in PLUGIN_OPTIONS.items():
+        value = _usable(os.environ.get(f"CLAUDE_PLUGIN_OPTION_{key.upper()}"))
+        if value:
+            os.environ[var] = value
+            CONFIG_SOURCES[var] = "/config"
     for attr, var in CONFIG_FLAGS.items():
         value = getattr(args, attr, None)
         if value is None:
             continue
-        value = value.strip()
-        if not value or "${" in value:
+        value = _usable(value)
+        if not value:
             ignored.append(var)
             continue
         os.environ[var] = value
+        CONFIG_SOURCES[var] = "/config"
     return ignored
+
+
+def setup_report() -> dict:
+    """What the doctor tells a first-time user: the runtime, each setting with its source (never a
+    secret's value) and the one next step. Read after apply_config_flags()."""
+    env = os.environ
+
+    def where(var):
+        return f"set, from {CONFIG_SOURCES.get(var, 'environment')}" if _usable(env.get(var)) else "missing"
+
+    token_var = next((v for v in ("GRAFANA_TOKEN", "GRAFANA_SERVICE_ACCOUNT_TOKEN") if _usable(env.get(v))), None)
+    basic = bool(_usable(env.get("GRAFANA_USERNAME")) and _usable(env.get("GRAFANA_PASSWORD")))
+    settings = {
+        "GRAFANA_URL": where("GRAFANA_URL"),
+        "GRAFANA_TOKEN": (f"set, from {CONFIG_SOURCES.get(token_var, 'environment')}; value hidden" if token_var
+                          else "set, as GRAFANA_USERNAME/PASSWORD" if basic else "missing"),
+        "GRAFANA_LOKI_UID": where("GRAFANA_LOKI_UID"),
+        "GRAFANA_TEMPO_UID": where("GRAFANA_TEMPO_UID"),
+        "LOKI_SELECTOR": where("LOKI_SELECTOR"),
+    }
+    direct = bool(_usable(env.get("LOKI_URL")) or _usable(env.get("TEMPO_URL")))
+    if not _usable(env.get("GRAFANA_URL")) and not direct:
+        nxt = f"set GRAFANA_URL in /config (Grafana URL) or in {SETTINGS_ENV}"
+    elif not token_var and not basic:
+        nxt = f"set GRAFANA_TOKEN in {SETTINGS_ENV}; never in /config or on a command line"
+    elif not direct and not (_usable(env.get("GRAFANA_LOKI_UID")) and _usable(env.get("GRAFANA_TEMPO_UID"))):
+        nxt = "copy the uid values from grafana_datasources below into /config (Loki / Tempo datasource UID)"
+    elif not _usable(env.get("LOKI_SELECTOR")):
+        nxt = "set the Loki stream selector in /config, built from loki.labels_sample below"
+    else:
+        nxt = "none - configuration complete; loki and tempo below should say ok"
+    py = sys.version_info
+    return {
+        "python": f"{py.major}.{py.minor}.{py.micro} ({sys.executable})" + ("" if py >= (3, 8) else " - too old: Python 3.8+ required"),
+        "platform": sys.platform,
+        "settings": settings,
+        "next": nxt,
+    }
 
 
 def main(argv=None) -> int:
@@ -1077,7 +1159,7 @@ def main(argv=None) -> int:
         s.pop("start_ns", None), s.pop("end_ns", None)
     for ev in doc["loki"].get("events", []):
         ev.pop("ts_ns", None)
-    out_path = Path(args.out) if args.out else Path(os.environ.get("TMPDIR", "/tmp")) / "trace-debug" / f"{trace_id}.json"
+    out_path = Path(args.out) if args.out else Path(os.environ.get("TMPDIR") or tempfile.gettempdir()) / "trace-debug" / f"{trace_id}.json"
     try:
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(json.dumps(doc, indent=1, ensure_ascii=False), encoding="utf-8")
@@ -1097,4 +1179,5 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
+    utf8_stdio()
     sys.exit(main())

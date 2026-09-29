@@ -183,10 +183,31 @@ traces Tempo did not return, errors inside a service with no call, and that call
 traces are not in it. A sequence, not a node-and-edge graph, because it is laid out by rule - the
 script stays deterministic (decision D22).
 
+## Prerequisites
+
+The plugin runs small Python scripts on your machine. Install these before the plugin, then **fully
+close and reopen** the editor or terminal that runs Claude Code: it reads `PATH` only when it starts,
+so a program installed while it is open stays invisible to it. This is the one restart you need.
+
+| | Needed for | macOS / Linux | Windows |
+| --- | --- | --- | --- |
+| **Claude Code** | everything | terminal, VS Code or JetBrains | same, plus [Git for Windows](https://git-scm.com/downloads/win) (Claude Code runs commands in Git Bash) |
+| **Python 3.8+** | everything | usually present: `python3 --version` | [python.org](https://www.python.org/downloads/windows/) installer, tick **Add python.exe to PATH**; check with `python --version` |
+| **Node 18+** (with `npx`) | only the diagram | [nodejs.org](https://nodejs.org) LTS or your package manager | [nodejs.org](https://nodejs.org) LTS installer; check with `node --version` |
+| **Grafana service account token** | live data | Viewer role is enough | same |
+
+No Python packages are needed: the scripts use the standard library only. On Windows the skills call
+`python3` and fall back to `python` or `py -3` when `python3` is missing or opens the Microsoft
+Store. If Windows opens the Store anyway, turn off the `python3.exe` entry under *Settings → Apps →
+Advanced app settings → App execution aliases*.
+
+**In VS Code** (the official Claude Code extension) everything below works the same as in the
+terminal: slash commands are typed in the Claude panel, and `/config` opens the same settings.
+
 ## Quick setup
 
 Six steps from nothing to a real investigation, plus an optional seventh for the diagram. Steps 1 and 2 need no Loki and no Tempo.
-Requirements: Claude Code and Python 3.8+ (Node 18+ only for the optional diagram).
+Requirements: see [Prerequisites](#prerequisites) - Claude Code and Python 3.8+ (Node 18+ only for the optional diagram). Installed by your organization? Start at [step 2](#installed-by-your-organization).
 
 Or let the plugin guide you: after step 1, run
 
@@ -219,14 +240,25 @@ Recorded Loki and Tempo responses ship with the plugin, so this works before any
 [Five more scenarios](#try-it-without-a-loki-or-a-tempo) are bundled.
 
 **3 — Point it at your Grafana.** Create a service account token (*Administration → Users and
-access → Service accounts*; Viewer is enough, the plugin only reads). Export both variables in the
-shell that launches Claude Code, then restart Claude Code so the collector inherits them — [the
-token deliberately is not in the install dialog](#configure):
+access → Service accounts*; Viewer is enough, the plugin only reads). Put the URL and the token in
+the `env` block of your own Claude Code settings file, `~/.claude/settings.json` (on Windows
+`%USERPROFILE%\.claude\settings.json`; create it if it does not exist, and keep any keys already
+there):
 
-```bash
-export GRAFANA_URL=https://your-stack.grafana.net    # or your self-hosted Grafana
-export GRAFANA_TOKEN=glsa_...
+```json
+{
+  "env": {
+    "GRAFANA_URL": "https://your-stack.grafana.net",
+    "GRAFANA_TOKEN": "glsa_..."
+  }
+}
 ```
+
+Start a new conversation and the collector sees both; no editor restart. This works the same in the
+terminal, VS Code and JetBrains, on every OS. The file keeps the token as plain text in your user
+profile: never put it in a project's `.claude/settings.json`, which is usually committed.
+[Why the token is not in `/config`](#configure). Prefer the shell? `export GRAFANA_URL=...` and
+`export GRAFANA_TOKEN=...` work too, but only for an editor started after the export.
 
 **4 — Ask the doctor for your datasource UIDs.** Ask Claude:
 
@@ -235,20 +267,13 @@ export GRAFANA_TOKEN=glsa_...
 With only the URL and the token set, it lists every Loki and Tempo datasource it can see, with
 their UIDs. You don't have to hunt for them in the UI.
 
-**5 — Set the UIDs, then build the selector.**
-
-```bash
-export GRAFANA_LOKI_UID=<uid from step 4>
-export GRAFANA_TEMPO_UID=<uid from step 4>
-```
-
-Ask for the doctor again. It now returns `check: ok` for both sources, plus a sample of the label
-names your Loki actually uses. Build the selector from that sample — not from this README, your
-labels are almost certainly different:
-
-```bash
-export LOKI_SELECTOR='{namespace="your-namespace"}'
-```
+**5 — Set the UIDs, then build the selector.** Open `/config`, find Sherlock Holmes under the
+plugin settings, and paste the two UIDs from step 4 into *Loki datasource UID* and *Tempo datasource
+UID*. Ask for the doctor again. It now returns `check: ok` for both sources, plus a sample of the
+label names your Loki actually uses. Build the selector from that sample — not from this README,
+your labels are almost certainly different — and put it in *Loki stream selector*, for example
+`{namespace="your-namespace"}`. The same values also work as `GRAFANA_LOKI_UID`,
+`GRAFANA_TEMPO_UID` and `LOKI_SELECTOR` in the `env` block of step 3.
 
 **6 — Investigate a trace you already understand,** so you can judge the answer:
 
@@ -315,18 +340,56 @@ ignored rather than applied, and you can edit them later in `/config`. Don't kno
 them empty, finish the install, set `GRAFANA_URL` and a token, and ask Claude to run the
 trace-debug doctor — it lists every Loki and Tempo datasource with its UID.
 
-**The credential is deliberately not in that dialog.** Plugin config is delivered to hooks and MCP
-servers, not to the Bash command that runs the collector, and secrets are never substituted into
-skill text, so a token entered there could not reach the collector anyway. It also keeps
-credentials off command lines and out of process listings. Export it in the shell that launches
-Claude Code, and restart Claude Code so it is inherited:
+**The credential is deliberately not in that dialog.** Plugin options reach the collector as
+command-line flags and plain environment variables, and a secret belongs in neither: command lines
+show up in process listings and transcripts. Put the token in the `env` block of
+`~/.claude/settings.json` (see [step 3](#quick-setup)), which a new conversation picks up with no
+restart, or export it in the shell before starting the editor:
 
 ```bash
 export GRAFANA_TOKEN=glsa_...        # or GRAFANA_SERVICE_ACCOUNT_TOKEN
 ```
 
-Everything the dialog collects can equally be set as an environment variable, which is what you
-want for CI or a shared machine. The dialog wins over the environment when both are set.
+Everything the dialog collects can equally be set as an environment variable, in that `env` block
+or in the shell, which is what you want for CI or a shared machine. The dialog (`/config`) wins over
+the environment when both are set.
+
+### Installed by your organization
+
+When an admin adds the plugin for a Claude Team or Enterprise organization - an uploaded zip or a
+repository synced from GitHub - it arrives already installed, but **each person still configures it
+for themselves**: the values in `/config` and the token in `~/.claude/settings.json` are personal, and
+the install dialog may never have been shown. Follow [Quick setup](#quick-setup) from step 2, or run
+`/sherlock-holmes:setup`. To give everyone the same Grafana URL, UIDs and selector, an admin can put
+them in the `env` block of the organization's managed settings; the token stays personal.
+
+A zip does not update itself: each release needs a new zip uploaded (*Organization settings →
+Plugins & skills → Inventory → Upload new version*). An organization that syncs this repository
+from GitHub gets releases without that step.
+
+### Check what the plugin sees
+
+Ask Claude to *run the trace-debug doctor*. The first block of its answer is about your machine, not
+your backend:
+
+```json
+"setup": {
+  "python": "3.12.4 (C:\\Users\\you\\AppData\\Local\\Programs\\Python\\Python312\\python.exe)",
+  "platform": "win32",
+  "settings": {
+    "GRAFANA_URL": "set, from environment",
+    "GRAFANA_TOKEN": "set, from environment; value hidden",
+    "GRAFANA_LOKI_UID": "set, from /config",
+    "GRAFANA_TEMPO_UID": "set, from /config",
+    "LOKI_SELECTOR": "missing"
+  },
+  "next": "set the Loki stream selector in /config, built from loki.labels_sample below"
+}
+```
+
+`missing` next to a value you did set means it did not reach the plugin: a setting saved in
+`settings.json` needs a new conversation, and an OS environment variable needs the editor fully
+closed and reopened. `next` is always the one step to take now. The token's value is never printed.
 
 Two access modes, auto-detected per source (direct wins when both are set):
 

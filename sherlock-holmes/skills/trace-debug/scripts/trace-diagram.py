@@ -29,6 +29,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 VERSION = "0.1.0"
@@ -38,6 +39,21 @@ Y0, STEP = 170, 44           # archify requires messages[].y >= 160
 VIEWBOX_WIDTH = 900
 # archify's sequence schema: at least 2 participants and 1 message, and a viewBox at least 480 high.
 MIN_PARTICIPANTS, MIN_MESSAGES, MIN_VIEWBOX_H = 2, 1, 480
+
+
+def utf8_stdio() -> None:
+    """Windows consoles and pipes default to a legacy code page (cp1252) that cannot print the
+    arrows and dots in these reports; force UTF-8 so the output never raises UnicodeEncodeError."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
+def work_dir() -> Path:
+    """Where reports and diagrams go by default: $TMPDIR/trace-debug, or the OS temp dir (Windows)."""
+    return Path(os.environ.get("TMPDIR") or tempfile.gettempdir()) / "trace-debug"
 
 
 def drawable(seq: dict) -> str | None:
@@ -572,4 +588,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    utf8_stdio()
     sys.exit(main())

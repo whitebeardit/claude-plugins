@@ -2,7 +2,7 @@
 name: trace-diagram
 description: Draw a trace as an interactive, self-contained sequence diagram (archify) from its Grafana Tempo spans, without investigating it. Use when the user wants to see, share or export the call sequence of a trace id - who called whom, where the time went, which span failed first - and does not ask why it failed. Evidence only. Read-only.
 argument-hint: "<trace-id> [--around <time>] [--lookback <dur>] [--fixture <dir>]"
-allowed-tools: Bash(python3 *collect-trace.py*) Bash(python3 *trace-diagram.py*) Read
+allowed-tools: Bash(python3 *collect-trace.py*) Bash(python3 *trace-diagram.py*) Read Bash(python *collect-trace.py*) Bash(py -3 *collect-trace.py*) Bash(python *trace-diagram.py*) Bash(py -3 *trace-diagram.py*)
 ---
 
 # Trace diagram
@@ -17,6 +17,14 @@ The bundled fixtures live at `${CLAUDE_PLUGIN_ROOT}/evals/fixtures/<case>/` (cas
 `01-downstream-503`, `03-error-only-in-tempo`, `04-contradictory-logs`, `05-incomplete-trace`,
 `06-intermediate-service-error`; `02-db-timeout-retries` has no trace in Tempo and therefore no
 diagram). Resolve `--fixture` under `${CLAUDE_PLUGIN_ROOT}`, never relative to the working directory.
+
+**Python command.** The commands below start with `python3`. If the shell answers "command not
+found", or `python3` opens the Microsoft Store (Windows, where the python.org installer provides
+`python` and `py` instead), run the same command with `python` in place of `python3` - or `py -3` -
+and change nothing else; keep using that one for the rest of the session. If none of the three
+exists, stop and tell the user: install Python 3.8+ (on Windows from python.org, ticking "Add
+python.exe to PATH"), then fully close and reopen the editor or terminal that runs Claude Code, since
+it reads PATH only when it starts.
 
 ## 1. Collect
 
