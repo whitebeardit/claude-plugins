@@ -106,10 +106,14 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/trace-debug/scripts/trace-diagram.py" doct
 ```
 
 - `diagram: ok`: say so and move on.
-- `node not found` or a Node older than 18: the diagram needs Node 18+ (it brings `npx`, which
-  installs archify). Say it, do not install Node, and give the one line: install the LTS from
-  nodejs.org, then fully close and reopen the editor or terminal (PATH is read at start). Move on;
-  everything else works without the diagram.
+- `node not found` or a Node older than 18: the diagram needs Node, and the archify installer needs
+  Node 22+ (`npx skills add` fails on 18 with `does not provide an export named 'styleText'`). Say
+  it, do not install Node, and give the one line: install the LTS from nodejs.org, or `nvm install
+  --lts` on macOS/Linux - not the Linux distribution package, which is often older - then fully close
+  and reopen the editor or terminal (PATH is read at start). Move on; everything else works without
+  the diagram.
+- `archify not found` and a Node older than 22: same advice before offering the install command,
+  since the installer would fail.
 - `archify not found`: explain in two lines what the diagram is (the trace as a self-contained
   interactive HTML, evidence only, delivered with every investigation that has a trace in Tempo) and
   **ask** whether to install archify now with exactly:

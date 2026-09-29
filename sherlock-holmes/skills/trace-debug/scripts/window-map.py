@@ -291,6 +291,7 @@ def window_map(args) -> dict:
     out = Path(args.out) if args.out else sw.default_out({"window": result["window"]}).with_suffix(".map.html")
     status = td.archify_status(args.archify)
     seq_path = out.with_suffix(".sequence.json")
+    spec["meta"]["output"] = td.output_name(out)
     out.parent.mkdir(parents=True, exist_ok=True)
     seq_path.write_text(json.dumps(spec, indent=1, ensure_ascii=False), encoding="utf-8")
     result["sequence"] = str(seq_path)
@@ -301,6 +302,7 @@ def window_map(args) -> dict:
     for q, compact in [(args.quality, False)] + ([("standard", False)] if args.quality != "standard" else []) + [("standard", True)]:
         s = build_map(agg, stats, window, total, len(found), missing, q, compact) if compact else spec
         s["meta"]["quality_profile"] = q
+        s["meta"]["output"] = td.output_name(out)
         seq_path.write_text(json.dumps(s, indent=1, ensure_ascii=False), encoding="utf-8")
         r = td.deliver(Path(status["archify"]), status["node"], seq_path, out, q)
         if r["ok"]:

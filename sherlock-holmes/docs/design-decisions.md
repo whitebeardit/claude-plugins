@@ -399,3 +399,18 @@ plugin, so every attempt meant closing and reopening VS Code. Three causes, thre
 A plugin cannot declare Python or Node as prerequisites (the manifest has no such field), so the
 README now opens its setup with a per-OS prerequisites table and one rule: install first, then close
 and reopen the editor once.
+
+## D25. archify 3 and a clean Linux install
+
+A first install on clean Ubuntu 22.04 / 24.04 and Node 18, 20 and 22 containers (2026-09-29) found
+that a new user got no diagram at all: archify 3.0.1, the version `npx skills add` installs today,
+requires `meta.output` (the HTML file name as a portable relative path) and rejected every spec,
+which were written for 2.17. The spec now carries the output file name; the command line still says
+where the file goes. Verified: the five trace fixtures and both window-map fixtures generate on
+3.0.1, the diagram renders with its colours and legend, and 2.17 still accepts it.
+
+The same run corrected the prerequisites: the archify installer declares Node >= 22.20 and fails on
+18 (`does not provide an export named 'styleText'`), while archify itself runs on 18; and the Linux
+distribution package is not a safe way to get Node (Ubuntu 22.04 installs 12, 24.04 installs 18). The
+README now asks for Node 22+ from nodejs.org or nvm, and shows how to install Python where it is
+missing (minimal images do not ship it).
