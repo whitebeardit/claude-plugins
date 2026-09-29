@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.6.0...sherlock-holmes-v0.6.1) (2026-09-29)
+
+
+### Bug Fixes
+
+* **sherlock-holmes:** skip the diagram of a trace with no call between services ([#21](https://github.com/whitebeardit/claude-plugins/issues/21)) ([e8302ee](https://github.com/whitebeardit/claude-plugins/commit/e8302ee842501e1c7669adddeb32fb62a9cfffbe))
+
 ## [0.6.0](https://github.com/whitebeardit/claude-plugins/compare/sherlock-holmes-v0.5.0...sherlock-holmes-v0.6.0) (2026-09-27)
 
 
