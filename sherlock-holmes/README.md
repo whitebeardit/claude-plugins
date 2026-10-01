@@ -260,8 +260,10 @@ there):
 Start a new conversation and the collector sees both; no editor restart. This works the same in the
 terminal, VS Code and JetBrains, on every OS. The file keeps the token as plain text in your user
 profile: never put it in a project's `.claude/settings.json`, which is usually committed.
-[Why the token is not in `/config`](#configure). Prefer the shell? `export GRAFANA_URL=...` and
-`export GRAFANA_TOKEN=...` work too, but only for an editor started after the export.
+[Why the token is not in `/config`](#configure). Prefer an OS environment variable? `export
+GRAFANA_URL=...` and `export GRAFANA_TOKEN=...` (on Windows, `setx GRAFANA_URL "..."` and `setx
+GRAFANA_TOKEN "..."`) work too, but only for an editor started afterwards: fully close and reopen it.
+`setx` does not change the window it runs in, and every process of your user can read the variable.
 
 **4 — Ask the doctor for your datasource UIDs.** Ask Claude:
 
@@ -354,8 +356,10 @@ export GRAFANA_TOKEN=glsa_...        # or GRAFANA_SERVICE_ACCOUNT_TOKEN
 ```
 
 Everything the dialog collects can equally be set as an environment variable, in that `env` block
-or in the shell, which is what you want for CI or a shared machine. The dialog (`/config`) wins over
-the environment when both are set.
+or in the shell, which is what you want for CI or a shared machine. When one setting is in more than
+one place, the dialog (`/config`) wins, then the `env` block of `settings.json`, then the OS
+environment. A selector has quotes in it (`{env="prod"}`), so prefer `/config` or `settings.json` for
+it (escaped as `\"` in JSON) over a shell, where quoting differs between bash, cmd and PowerShell.
 
 ### Installed by your organization
 
