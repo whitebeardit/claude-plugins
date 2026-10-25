@@ -15,6 +15,20 @@
           "jsonpath": "$.version"
         }
       ]
+    },
+    "aws-cost-audit": {
+      "release-type": "simple",
+      "package-name": "aws-cost-audit",
+      "component": "aws-cost-audit",
+      "include-component-in-tag": true,
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        {
+          "type": "json",
+          "path": ".claude-plugin/plugin.json",
+          "jsonpath": "$.version"
+        }
+      ]
     }
   }
 }
