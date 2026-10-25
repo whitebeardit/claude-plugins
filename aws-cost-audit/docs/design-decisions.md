@@ -41,18 +41,18 @@ fallback as in sherlock-holmes 0.6.2). Calling the CLI through subprocess also s
 command-line wrappers that reformat JSON, and parses the CLI's local-time timestamps explicitly
 (the first audit lost an hour to a double timezone shift).
 
-## D6. The report is born from a JSON, by script (0.2)
+## D6. The report is born from a JSON, by script (0.3)
 
 `scripts/build_plan.py levers.json → plan.html` renders the report from a file of levers (name,
 front, nominal, realizable, effort, risk, stage, impact on what is running, forecast per month).
 The model fills the JSON; the page is deterministic, checkable (stage sums, compute ceiling, last
-month = potential) and gradable in evals. The 0.1 template becomes the mould of the generator.
+month = potential) and gradable in evals. The 0.2 template becomes the mould of the generator.
 
 ## D7. Language
 
 Repository, README, skills and `plugin.json` in English, like the rest of the marketplace. The
-report comes out in the user's language; the levers JSON carries the text. The 0.1 mould keeps
-its pt-BR labels (the skill tells the model to translate them); 0.2 ships an English mould with
+report comes out in the user's language; the levers JSON carries the text. The 0.2 mould keeps
+its pt-BR labels (the skill tells the model to translate them); 0.3 ships an English mould with
 the generator. Decided: English.
 
 ## D8. No mandatory MCP
