@@ -162,12 +162,17 @@ and `bash scripts/check_requirements.sh --profiles <payer>`.
 
 ## Roadmap
 
-- 0.1: `audit`, `check`, `bill-map` and `idle` skills, the `cost-auditor` agent, the read-only
-  guard hook (on by default, opt-out `AWS_COST_AUDIT_ALLOW_WRITES=1`), the collection scripts,
-  the report mould (pt-BR labels).
-- 0.2: `build_plan.py` (levers JSON → report HTML, with sum checks), synthetic fixtures for three
+Shipped:
+
+- 0.2 (first release): `audit`, `check`, `bill-map` and `idle` skills, the `cost-auditor` agent,
+  the read-only guard hook (on by default, opt-out `AWS_COST_AUDIT_ALLOW_WRITES=1`), the
+  collection scripts, the report mould (pt-BR labels).
+
+Next:
+
+- 0.3: `build_plan.py` (levers JSON → report HTML, with sum checks), synthetic fixtures for three
   account profiles, offline evals, English report mould.
-- 0.3: Compute Optimizer and Cost Anomaly Detection as optional sources, multi-region, ECS and
+- 0.4: Compute Optimizer and Cost Anomaly Detection as optional sources, multi-region, ECS and
   Lambda hour-of-day profiles ready-made, Reserved Instances beside Savings Plans, demo GIF.
 
 ## License
