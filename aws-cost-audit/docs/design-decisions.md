@@ -3,9 +3,9 @@
 Numbered so that reviews and issues can refer to them. D1 and D7 were decided by the founder on
 2026-10-25; the rest are proposals carried by the plan.
 
-## D1. Read-only by hook, not by instruction (0.2)
+## D1. Read-only by hook, not by instruction
 
-"Never change anything" is an instruction in 0.1 and a mechanism from 0.2: a `PreToolUse` hook for
+"Never change anything" is a mechanism, not only an instruction: a `PreToolUse` hook for
 `Bash` runs `hooks/guard.py` (Python, portable to Windows) that parses every `aws` and `kubectl`
 invocation in the command and **denies** anything outside the read allowlist (`describe-*`, `get-*`,
 `list-*`, `lookup-*`, `search-*`, `sts`, `sso login`, `configure`, `s3 ls`, `s3api list-*/get-*/head-*`,
@@ -41,7 +41,7 @@ fallback as in sherlock-holmes 0.6.2). Calling the CLI through subprocess also s
 command-line wrappers that reformat JSON, and parses the CLI's local-time timestamps explicitly
 (the first audit lost an hour to a double timezone shift).
 
-## D6. The report is born from a JSON, by script (0.3)
+## D6. The report is born from a JSON, by script (0.2)
 
 `scripts/build_plan.py levers.json → plan.html` renders the report from a file of levers (name,
 front, nominal, realizable, effort, risk, stage, impact on what is running, forecast per month).
@@ -52,7 +52,7 @@ month = potential) and gradable in evals. The 0.1 template becomes the mould of 
 
 Repository, README, skills and `plugin.json` in English, like the rest of the marketplace. The
 report comes out in the user's language; the levers JSON carries the text. The 0.1 mould keeps
-its pt-BR labels (the skill tells the model to translate them); 0.3 ships an English mould with
+its pt-BR labels (the skill tells the model to translate them); 0.2 ships an English mould with
 the generator. Decided: English.
 
 ## D8. No mandatory MCP

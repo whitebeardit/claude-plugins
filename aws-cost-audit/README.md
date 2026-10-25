@@ -9,6 +9,8 @@ forecast and the production impact of every action. **It never changes the accou
 /plugin marketplace add whitebeardit/claude-plugins
 /plugin install aws-cost-audit@whitebeard-plugins
 /aws-cost-audit:check                       # what you need, and whether you have it
+/aws-cost-audit:bill-map                    # where the money goes, in two minutes
+/aws-cost-audit:idle                        # what costs money and does nothing, with proof
 /aws-cost-audit:audit                       # the full audit → HTML report
 ```
 
@@ -115,9 +117,14 @@ another. AWS CLI profiles live in `%USERPROFILE%\.aws\config` and `credentials`;
 
 ```
 /aws-cost-audit:check                                  # requirements and access
+/aws-cost-audit:bill-map                               # the bill in fixed categories + biggest lines
+/aws-cost-audit:idle                                   # idle NAT, volumes, EIPs, LBs, instances, with proof
 /aws-cost-audit:audit                                  # full audit, uses the plugin configuration
 /aws-cost-audit:audit --profiles billing,prod --region eu-west-1 --kube-context prod-eks
 ```
+
+The `cost-auditor` agent runs the full audit in its own context when the task is delegated
+("ask the cost auditor to…"); it has Bash, Read and Write, and the same guard applies to it.
 
 Or just ask: "where does our AWS money go?", "how are we scaled at dinner peak?", "is there
 anything to cut at night?", "are these NAT gateways idle?". The `audit` skill triggers on those.
@@ -133,15 +140,20 @@ anything to cut at night?", "are these NAT gateways idle?". The `audit` skill tr
 - Vendor hostnames are resolved locally and compared with the published AWS IP ranges, nothing is
   sent anywhere but AWS.
 - Idleness is only called proven when metrics have datapoints at zero, never when data is missing.
-- Roadmap 0.2: a `PreToolUse` hook that blocks any `aws` or `kubectl` write verb while the plugin
-  is enabled, with an explicit opt-out, so "read-only" stops depending on the model and becomes
-  mechanical.
+- **Read-only guard.** While the plugin is enabled, a `PreToolUse` hook (`hooks/guard.py`) denies
+  any `aws`, `kubectl`, `helm` or `eksctl` write verb before it runs, naming the operation and the
+  way out. Reads (`describe-*`, `get-*`, `list-*`, `lookup-*`, `sts`, `s3 ls`, `kubectl get/describe/
+  port-forward`…) and local-only calls (`eks update-kubeconfig`, `sso login`) pass. So "read-only"
+  does not depend on the model following an instruction. The whole session becomes read-only on
+  AWS and Kubernetes, which is the point of an audit; to operate in the same session set
+  `AWS_COST_AUDIT_ALLOW_WRITES=1` or disable the plugin. The guard never blocks on malformed input.
 
 ## Test
 
 ```bash
 cd aws-cost-audit
-python3 -m unittest discover -s tests -v          # bill classification rules, timezone handling; no network
+python3 -m unittest discover -s tests -v          # bill classification, timezone handling, the read-only guard; no network
+echo '{"tool_name":"Bash","tool_input":{"command":"aws ec2 delete-volume --volume-id v"}}' | python3 hooks/guard.py   # prints a deny
 claude plugin validate .
 ```
 
@@ -150,12 +162,12 @@ and `bash scripts/check_requirements.sh --profiles <payer>`.
 
 ## Roadmap
 
-- 0.1: the audit and check skills, the collection scripts, the report mould (pt-BR labels).
-- 0.2: read-only guard hook (on by default, opt-out `AWS_COST_AUDIT_ALLOW_WRITES=1`), the
-  `cost-auditor` agent, `bill-map` and `idle` skills, configuration read by the scripts.
-- 0.3: `build_plan.py` (levers JSON → report HTML, with sum checks), synthetic fixtures for three
+- 0.1: `audit`, `check`, `bill-map` and `idle` skills, the `cost-auditor` agent, the read-only
+  guard hook (on by default, opt-out `AWS_COST_AUDIT_ALLOW_WRITES=1`), the collection scripts,
+  the report mould (pt-BR labels).
+- 0.2: `build_plan.py` (levers JSON → report HTML, with sum checks), synthetic fixtures for three
   account profiles, offline evals, English report mould.
-- 0.4: Compute Optimizer and Cost Anomaly Detection as optional sources, multi-region, ECS and
+- 0.3: Compute Optimizer and Cost Anomaly Detection as optional sources, multi-region, ECS and
   Lambda hour-of-day profiles ready-made, Reserved Instances beside Savings Plans, demo GIF.
 
 ## License
