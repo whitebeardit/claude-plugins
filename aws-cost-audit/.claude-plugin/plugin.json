@@ -1,7 +1,7 @@
 {
   "name": "aws-cost-audit",
   "displayName": "AWS Cost Audit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Read-only AWS cost audit that ends in a phased cuts plan: the bill classified into fixed categories, the biggest lines, what can be cut now, what needs engineering, what needs architecture or contract changes, with a monthly savings forecast and the production impact of every action. Works with or without Kubernetes. It never changes the account.",
   "author": {
     "name": "Whitebeard",
