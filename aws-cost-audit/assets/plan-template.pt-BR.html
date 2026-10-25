@@ -1,0 +1,343 @@
+<title>{{Nome curto, ex.: Cortes AWS em quatro etapas}}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (72ch) with full-width bands for the forecast chart; a slate-teal ledger look, numbers in mono. */
+:root{
+  --bg:#f5f7f8; --surface:#ffffff; --surface-2:#eaeff1; --line:#d3dbdf; --line-strong:#9fb0b7;
+  --fg:#15202b; --fg-2:#45535c; --fg-3:#6b7b84;
+  --accent:#0b6e6a; --accent-ink:#ffffff; --accent-soft:#d9eeec;
+  --good:#1f7a3a; --good-soft:#dff2e4; --warn:#9a5b00; --warn-soft:#fbecd0; --serious:#b3361a; --serious-soft:#f9ded5;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+  --display:"Archivo",system-ui,"Segoe UI",sans-serif;
+  --body:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111719; --surface:#171f22; --surface-2:#1f292d; --line:#2c393f; --line-strong:#4a5c64;
+    --fg:#eef2f3; --fg-2:#bcc8cd; --fg-3:#8d9ca3;
+    --accent:#3bb5ad; --accent-ink:#0b1416; --accent-soft:#143634;
+    --good:#5fcb7e; --good-soft:#15301d; --warn:#f0b35a; --warn-soft:#3a2a0e; --serious:#f28b6b; --serious-soft:#3d1c12;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111719; --surface:#171f22; --surface-2:#1f292d; --line:#2c393f; --line-strong:#4a5c64;
+  --fg:#eef2f3; --fg-2:#bcc8cd; --fg-3:#8d9ca3;
+  --accent:#3bb5ad; --accent-ink:#0b1416; --accent-soft:#143634;
+  --good:#5fcb7e; --good-soft:#15301d; --warn:#f0b35a; --warn-soft:#3a2a0e; --serious:#f28b6b; --serious-soft:#3d1c12;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-block:0 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:860px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(30px,5vw,44px);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(22px,3vw,28px);font-weight:600;margin-top:56px;padding-top:20px;border-top:2px solid var(--line-strong)}
+h3{font-size:19px;font-weight:600}
+p{max-width:72ch;margin:12px 0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3)}
+header{padding-block:40px 8px}
+header .lede{font-size:19px;color:var(--fg-2);max-width:66ch}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:24px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.tile .k{font-size:13px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.06em}
+.tile .v{font-family:var(--display);font-size:30px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.tile .v small{font-size:15px;font-weight:500;color:var(--fg-2)}
+.tile .d{font-size:14px;color:var(--fg-2);margin-top:6px}
+.callout{background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:0 6px 6px 0;padding:16px 20px;margin:24px 0}
+.callout p{margin:6px 0}
+.callout strong{color:var(--fg)}
+/* bars: bill composition */
+.bars{display:grid;grid-template-columns:minmax(150px,220px) 1fr 70px;gap:6px 12px;align-items:center;margin-top:16px;font-size:15px}
+.bars .lbl{color:var(--fg-2);min-width:0;overflow-wrap:anywhere}
+.bars .trk{height:14px;background:var(--surface-2);border-radius:3px;overflow:hidden;min-width:0}
+.bars .fill{height:100%;background:var(--s1);border-radius:0 3px 3px 0}
+.bars .fill.var{background:var(--s2)}
+.bars .val{text-align:right;color:var(--fg)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;color:var(--fg-2);margin-top:14px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:12px;height:12px;border-radius:2px;display:inline-block}
+/* stages */
+.stages{display:grid;gap:18px;margin-top:20px}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:20px 22px;min-width:0}
+.stage .top{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;justify-content:space-between}
+.stage .when{font-family:var(--mono);font-size:13px;color:var(--fg-3)}
+.stage ul{margin:12px 0 0;padding-left:20px}
+.stage li{margin:6px 0;max-width:72ch}
+.stage li .amt{font-family:var(--mono);font-size:14px;color:var(--fg-2);white-space:nowrap}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 18px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);font-size:14px}
+.facts .k{color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;font-size:12px}
+.facts .v{margin-top:2px}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;font-family:var(--display);white-space:nowrap}
+.chip.stage{background:var(--surface-2);color:var(--fg)}
+.chip.good{background:var(--good-soft);color:var(--good)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.serious{background:var(--serious-soft);color:var(--serious)}
+.chip::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.chip.stage::before{display:none}
+/* chart */
+.chart-card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px 18px 8px;margin-top:18px}
+.chart-scroll{overflow-x:auto}
+.chart-scroll svg{display:block;width:100%;min-width:560px;height:auto;font-family:var(--body)}
+.axis text{fill:var(--fg-3);font-size:12px;font-family:var(--mono)}
+.grid line{stroke:var(--line);stroke-width:1}
+.base{stroke:var(--line-strong);stroke-width:1}
+.seg{stroke:var(--surface);stroke-width:2;cursor:pointer;outline:none}
+.seg:hover,.seg:focus-visible{filter:brightness(1.12)}
+.seg:focus-visible{stroke:var(--fg);stroke-width:2}
+.tot text{fill:var(--fg);font-size:12px;font-family:var(--mono);text-anchor:middle}
+.opt line{stroke:var(--fg-2);stroke-width:2}
+.tip{position:fixed;z-index:20;pointer-events:none;background:var(--fg);color:var(--bg);font-size:13px;line-height:1.35;padding:8px 10px;border-radius:4px;max-width:240px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.tip .num{font-weight:600}
+/* tables */
+.tbl{overflow-x:auto;margin-top:16px}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:720px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--fg-3);border-bottom:2px solid var(--line-strong)}
+td.r,th.r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tfoot td{font-weight:600;border-top:2px solid var(--line-strong);border-bottom:0}
+.muted{color:var(--fg-3)}
+.dont{display:grid;gap:10px;margin-top:16px}
+.dont div{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 16px;max-width:none}
+.dont b{font-family:var(--display);font-weight:600}
+footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;color:var(--fg-3)}
+a{color:var(--accent)}
+@media (prefers-reduced-motion: no-preference){.seg{transition:filter .15s}}
+@media (max-width:520px){.bars{grid-template-columns:1fr;gap:2px}.bars .trk{order:2}.bars .val{text-align:left;order:3;margin-bottom:8px}.bars .lbl{order:1;font-size:14px}table{min-width:560px}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">{{CLIENTE}} · AWS · plano de redução de custos · análise read-only de {{DATA}}</div>
+  <h1 style="margin-top:10px">{{TÍTULO CURTO, ex.: Cortes AWS em quatro etapas}}</h1>
+  <p class="lede">O que já pode ser cortado nas próximas duas semanas, o que pede trabalho de engenharia e o que depende de mudanças de arquitetura ou contrato. Valores em dólares por mês, com faixa conservadora e otimista. Cada ação traz o impacto esperado no que está rodando, e a regra é não interromper produção. Nenhuma alteração foi feita na AWS para produzir este plano.</p>
+  <div class="strip">
+    <div class="tile"><div class="k">Fatura consolidada hoje</div><div class="v">US$ {{X}} mil<small>/mês</small></div><div class="d">{{janela e contas}}</div></div>
+    <div class="tile"><div class="k">Já dá para cortar (etapa 0)</div><div class="v">US$ {{a–b}}<small>/mês</small></div><div class="d">Duas semanas, sem mudança de arquitetura</div></div>
+    <div class="tile"><div class="k">Potencial ao fim de {{N}} meses</div><div class="v">US$ {{c–d}} mil<small>/mês</small></div><div class="d">{{p}}% a {{q}}% da fatura, com as quatro etapas concluídas</div></div>
+  </div>
+</header>
+
+<div class="callout">
+  <p><strong>{{Frase sobre o compromisso vigente.}}</strong> {{Ex.: o compute roda sob um Savings Plan de 3 anos (US$ X/h, até DD/MM/AAAA) com utilização de 100% todos os dias; na madrugada o consumo já é igual ao compromisso, então tirar capacidade nessas horas só gera compromisso pago e não usado.}}</p>
+  <p>{{O que é cobrado on-demand de verdade: o excedente diurno de US$ X a Y por dia. Toda otimização de compute disputa esse teto. Onde está o dinheiro grande.}}</p>
+</div>
+
+<h2>Para onde o dinheiro vai</h2>
+<p>Fatura consolidada do período {{janela}}, classificada nas mesmas categorias usadas em toda auditoria. Em laranja, o que varia com o uso e por isso responde a cortes de volume; em azul, o que é fixo, contratado ou por instância. Dados de <code>ce_breakdown.py map</code>.</p>
+<div class="bars" id="comp"></div>
+<div class="legend"><span><i class="sw" style="background:var(--s2)"></i>varia com o uso</span><span><i class="sw" style="background:var(--s1)"></i>fixo ou contratado</span></div>
+<h3 style="margin-top:28px">As maiores linhas</h3>
+<div class="tbl">
+<table aria-label="Maiores linhas da fatura">
+  <thead><tr><th>Linha (serviço ou usage type)</th><th>Categoria</th><th class="r">USD no período</th><th class="r">% da fatura</th><th>Natureza</th></tr></thead>
+  <tbody id="lines-rows"></tbody>
+</table>
+</div>
+
+<h2>{{Categoria maior}} em detalhe</h2>
+<p>{{Seção que muda conforme a empresa: se for rede, tabela InterZone × PublicIP, saltos no tempo e o que falta medir; se for compute, instâncias/tasks/funções por CPU média e reserva × uso; se for dados, classes, Multi-AZ, storage e snapshots; se for SaaS, contratos, renovações e uso medido.}}</p>
+
+<h2>O plano em quatro etapas</h2>
+<p>Cada etapa fecha com um run-rate de economia mensal acumulado. As faixas somam os itens da etapa com os das anteriores.</p>
+<div class="stages">
+  <div class="stage">
+    <div class="top"><h3><span class="chip stage">Etapa 0</span>&nbsp; Já dá para fazer</h3><span class="when">semanas 1–2 · sem mudança de arquitetura</span></div>
+    <ul>
+      <li>{{Item com o que, por quê e o número medido.}} <span class="amt">US$ {{a–b}}</span></li>
+      <li>{{Item de proteção do pico, se houver.}} <span class="amt">custo ≈ 0</span></li>
+    </ul>
+    <div class="facts">
+      <div><div class="k">Run-rate ao fim</div><div class="v num">US$ {{a–b}}/mês</div></div>
+      <div><div class="k">Esforço</div><div class="v">{{dias}}</div></div>
+      <div><div class="k">Risco</div><div class="v"><span class="chip good">baixo</span></div></div>
+      <div><div class="k">Decide</div><div class="v">{{quem}}</div></div>
+      <div><div class="k">Impacto no que roda</div><div class="v">{{nenhum / janela + rollback / …}}</div></div>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="top"><h3><span class="chip stage">Etapa 1</span>&nbsp; Precisa de trabalho de engenharia</h3><span class="when">semanas 3–8</span></div>
+    <ul><li>{{…}} <span class="amt">US$ {{…}}</span></li></ul>
+    <div class="facts">
+      <div><div class="k">Run-rate acumulado</div><div class="v num">US$ {{…}}/mês</div></div>
+      <div><div class="k">Esforço</div><div class="v">{{…}}</div></div>
+      <div><div class="k">Risco</div><div class="v"><span class="chip warn">médio</span></div></div>
+      <div><div class="k">Pré-requisito</div><div class="v">{{…}}</div></div>
+      <div><div class="k">Impacto no que roda</div><div class="v">{{rollout por serviço, fora do pico}}</div></div>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="top"><h3><span class="chip stage">Etapa 2</span>&nbsp; Mudanças de arquitetura</h3><span class="when">meses 2–4</span></div>
+    <ul><li>{{…}} <span class="amt">US$ {{…}}</span></li><li>Adiado: {{item e motivo}}.</li></ul>
+    <div class="facts">
+      <div><div class="k">Run-rate acumulado</div><div class="v num">US$ {{…}}/mês</div></div>
+      <div><div class="k">Esforço</div><div class="v">{{…}}</div></div>
+      <div><div class="k">Risco</div><div class="v"><span class="chip warn">médio</span></div></div>
+      <div><div class="k">Pré-requisito</div><div class="v">{{…}}</div></div>
+      <div><div class="k">Impacto no que roda</div><div class="v">{{…}}</div></div>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="top"><h3><span class="chip stage">Etapa 3</span>&nbsp; Contratos e plataforma</h3><span class="when">meses 3–9</span></div>
+    <ul><li>{{…}} <span class="amt">{{30–50% · US$ …}}</span></li></ul>
+    <div class="facts">
+      <div><div class="k">Run-rate acumulado</div><div class="v num">US$ {{…}}/mês</div></div>
+      <div><div class="k">Esforço</div><div class="v">meses; migrações de dados</div></div>
+      <div><div class="k">Risco</div><div class="v"><span class="chip serious">alto</span></div></div>
+      <div><div class="k">Decide</div><div class="v">diretoria e contratos</div></div>
+      <div><div class="k">Impacto no que roda</div><div class="v">migrações: plano próprio, dupla escrita ou janela, só depois do substituto validado</div></div>
+    </div>
+  </div>
+</div>
+
+<h2>Previsão de economia por mês</h2>
+<p>Run-rate mensal de economia que cada mês entrega, empilhado por frente (as mesmas categorias da fatura, agrupadas em quatro). As barras usam a faixa conservadora; o traço acima de cada barra marca o total otimista. Passe o mouse ou use Tab para ver cada parcela.</p>
+<div class="chart-card">
+  <div class="legend" id="fc-legend"></div>
+  <div class="chart-scroll"><svg id="fc" viewBox="0 0 720 340" role="img" aria-label="Economia mensal prevista por frente"></svg></div>
+</div>
+<div class="tbl">
+<table aria-label="Tabela da previsão de economia">
+  <thead><tr><th>Mês</th><th>Marco</th><th class="r">Compute</th><th class="r">Rede</th><th class="r">Dados e armazenamento</th><th class="r">Contratos e SaaS</th><th class="r">Conservador</th><th class="r">Otimista</th></tr></thead>
+  <tbody id="fc-rows"></tbody>
+</table>
+</div>
+
+<h2>Alavancas, uma a uma</h2>
+<p>“Nominal” é o valor em equivalente on-demand. “Realizável hoje” desconta o efeito do compromisso vigente: as alavancas de compute só valem até o excedente on-demand, e esse teto é dividido entre elas. A última coluna diz o que cada ação faz com o que está rodando.</p>
+<div class="tbl">
+<table aria-label="Alavancas de corte">
+  <thead><tr><th>Alavanca</th><th>Frente</th><th class="r">Nominal/mês</th><th class="r">Realizável hoje</th><th>Esforço</th><th>Risco</th><th>Etapa</th><th>Impacto no que roda</th></tr></thead>
+  <tbody>
+    <tr><td>{{alavanca}}</td><td>{{Compute | Rede | Dados e armazenamento | Contratos e SaaS | Proteção}}</td><td class="r">{{…}}</td><td class="r">{{…}}</td><td>{{baixo|médio|alto}}</td><td><span class="chip good">baixo</span></td><td>{{0|1|2|3|adiado}}</td><td>{{nenhum | só staging | janela + rollback | rollout por serviço | migração; plano próprio}}</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Execução segura</h2>
+<p>Regras para aplicar qualquer item deste plano sem interromper o que está rodando. Elas valem mais do que a economia de cada item.</p>
+<div class="dont">
+  <div><b>Fora dos picos medidos.</b> Nada em produção entre {{hh}} e {{hh}} nem entre {{hh}} e {{hh}}, nem nos fins de semana se forem maiores. A janela boa é {{…}}.</div>
+  <div><b>Uma mudança por vez, por GitOps.</b> Tudo que toca o cluster entra por Git, com o commit anterior como rollback.</div>
+  <div><b>Observar 30 minutos antes da próxima.</b> Réplicas, 5xx, latência e pods Pending. Se piorar, reverter primeiro e investigar depois.</div>
+  <div><b>Exportar antes de apagar.</b> Guardar a descrição em JSON e snapshot de volume, para recriar se algo faltar.</div>
+  <div><b>Nunca cortar sem medir primeiro.</b> Flow Logs antes de mexer em rede, VPA em modo recomendação antes de reduzir requests, console do fornecedor antes de mudar o acesso.</div>
+  <div><b>Dados e contratos só com substituto validado.</b> Cada migração tem plano próprio com dupla escrita ou janela acordada.</div>
+</div>
+
+<h2>O que não fazer</h2>
+<div class="dont">
+  <div><b>{{Ação óbvia que não paga.}}</b> {{Razão com número.}}</div>
+</div>
+
+<h2>Premissas e limites</h2>
+<ul style="max-width:72ch">
+  <li>{{Compromissos (SP/RI): valores, prazo, utilização, cobertura.}}</li>
+  <li>{{Preços on-demand usados.}}</li>
+  <li>{{O que é estimativa e por quê.}}</li>
+  <li>{{O que não foi medido.}}</li>
+  <li>Métricas: {{fontes e janelas}}. Horários em {{fuso}}. Leitura apenas; nenhuma alteração foi feita.</li>
+</ul>
+
+<footer>Fonte: {{nota técnica e onde está}}.</footer>
+</div>
+
+<script>
+(function(){
+  // bill composition
+  var comp=[ // EXEMPLO: saída de `ce_breakdown.py map` (USD no período do tile; true = varia com o uso)
+    ["Compute",4200,true],["Rede",2100,true],["Dados e bancos",1800,false],["SaaS e Marketplace",1500,false],["Armazenamento",900,true],["Compromissos (SP/RI)",800,false],["Observabilidade",400,true],["Impostos",300,false],["Outros",150,false]
+  ];
+  var lines=[ // EXEMPLO: [linha, categoria, USD, varia com uso]
+    ["Amazon Elastic Compute Cloud - Compute","Compute",3600,true],["EC2-Other: DataTransfer-Out-Bytes","Rede",1200,true],["Amazon Relational Database Service","Dados e bancos",1800,false],["Cache SaaS (anual)","SaaS e Marketplace",1500,false],["Amazon Simple Storage Service","Armazenamento",600,true],["Savings Plans for AWS Compute usage","Compromissos (SP/RI)",800,false],["EC2-Other: NatGateway-Bytes","Rede",500,true],["AmazonCloudWatch","Observabilidade",400,true]
+  ];
+  var max=comp.length?comp[0][1]:1, el=document.getElementById("comp"), h="";
+  comp.forEach(function(c){
+    h+='<div class="lbl">'+c[0]+'</div><div class="trk"><div class="fill'+(c[2]?' var':'')+'" style="width:'+(c[1]/max*100).toFixed(1)+'%"></div></div><div class="val num">'+c[1].toLocaleString("pt-BR")+'</div>';
+  });
+  el.innerHTML=h;
+  var totBill=comp.reduce(function(a,c){return a+c[1];},0), lr="";
+  lines.forEach(function(l){ lr+='<tr><td>'+l[0]+'</td><td>'+l[1]+'</td><td class="r">'+l[2].toLocaleString("pt-BR")+'</td><td class="r">'+(100*l[2]/totBill).toFixed(1)+'%</td><td>'+(l[3]?'varia com o uso':'fixo ou contratado')+'</td></tr>'; });
+  var lt=document.getElementById("lines-rows"); if(lt) lt.innerHTML=lr;
+
+  // forecast
+  var series=[["Compute","--s1"],["Rede","--s2"],["Dados e armazenamento","--s3"],["Contratos e SaaS","--s4"]];
+  var months=[ // EXEMPLO: v = [compute, rede, dados e armazenamento, contratos e SaaS] conservador; opt = total otimista
+    {m:1,mark:"Etapa 0 concluída",v:[200,200,0,50],opt:700},
+    {m:2,mark:"Etapa 1 em andamento",v:[250,500,0,60],opt:1200},
+    {m:3,mark:"Etapa 1 concluída",v:[250,900,0,80],opt:1800},
+    {m:4,mark:"Etapa 2 em andamento",v:[250,1100,0,150],opt:2200},
+    {m:5,mark:"Etapa 2 concluída",v:[250,1300,100,150],opt:2700},
+    {m:6,mark:"Contrato 1 renegociado",v:[250,1300,500,150],opt:3300},
+    {m:7,mark:"Contrato 2",v:[250,1300,800,150],opt:3900},
+    {m:8,mark:"Descomissionamento",v:[250,1300,1000,150],opt:4400},
+    {m:9,mark:"Etapa 3 concluída",v:[250,1300,1000,150],opt:4500}
+  ];
+  var lg=document.getElementById("fc-legend"), lh="";
+  series.forEach(function(s){lh+='<span><i class="sw" style="background:var('+s[1]+')"></i>'+s[0]+'</span>';});
+  lh+='<span><i class="sw" style="background:none;border-top:2px solid var(--fg-2);height:0;border-radius:0"></i>total otimista</span>';
+  lg.innerHTML=lh;
+
+  var W=720,H=340,L=64,R=16,T=24,B=44,yMax=5000; // ajuste ao maior total otimista
+  var pw=W-L-R, ph=H-T-B, n=months.length, slot=pw/n, bw=Math.min(44,slot*0.58);
+  function y(v){return T+ph-(v/yMax)*ph;}
+  var s='';
+  s+='<g class="grid">';
+  for(var g=0;g<=yMax;g+=1000){ s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(g).toFixed(1)+'" y2="'+y(g).toFixed(1)+'"></line>'; }
+  s+='</g><g class="axis">';
+  for(var g2=0;g2<=yMax;g2+=1000){ s+='<text x="'+(L-8)+'" y="'+(y(g2)+4).toFixed(1)+'" text-anchor="end">'+(g2/1000).toLocaleString("pt-BR",{minimumFractionDigits:0})+' mil</text>'; }
+  months.forEach(function(mo,i){ var cx=L+slot*i+slot/2; s+='<text x="'+cx.toFixed(1)+'" y="'+(H-B+20)+'" text-anchor="middle">M'+mo.m+'</text>'; });
+  s+='<text x="'+(L-8)+'" y="'+(T-10)+'" text-anchor="end">US$/mês</text>';
+  s+='</g>';
+  months.forEach(function(mo,i){
+    var cx=L+slot*i+slot/2, x=cx-bw/2, acc=0, tot=mo.v.reduce(function(a,b){return a+b;},0);
+    mo.v.forEach(function(v,k){
+      if(!v) return;
+      var y0=y(acc+v), hgt=y(acc)-y(acc+v);
+      var r= (k===lastIdx(mo.v)) ? 4 : 0;
+      s+='<path class="seg" tabindex="0" fill="var('+series[k][1]+')" d="'+roundTop(x,y0,bw,hgt,r)+'" data-m="M'+mo.m+' · '+mo.mark+'" data-s="'+series[k][0]+'" data-v="'+v+'" data-t="'+tot+'" data-o="'+mo.opt+'"></path>';
+      acc+=v;
+    });
+    s+='<g class="tot"><text x="'+cx.toFixed(1)+'" y="'+(y(tot)-6).toFixed(1)+'">'+tot.toLocaleString("pt-BR")+'</text></g>';
+    s+='<g class="opt"><line x1="'+(x-4).toFixed(1)+'" x2="'+(x+bw+4).toFixed(1)+'" y1="'+y(mo.opt).toFixed(1)+'" y2="'+y(mo.opt).toFixed(1)+'"></line></g>';
+  });
+  s+='<line class="base" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(0)+'" y2="'+y(0)+'"></line>';
+  document.getElementById("fc").innerHTML=s;
+  function lastIdx(arr){ for(var i=arr.length-1;i>=0;i--){ if(arr[i]) return i; } return 0; }
+  function roundTop(x,y0,w,h,r){
+    r=Math.min(r,h/2,w/2);
+    return 'M'+x+' '+(y0+h)+' V'+(y0+r)+' Q'+x+' '+y0+' '+(x+r)+' '+y0+' H'+(x+w-r)+' Q'+(x+w)+' '+y0+' '+(x+w)+' '+(y0+r)+' V'+(y0+h)+' Z';
+  }
+  // table rows
+  var rows='', tb=document.getElementById("fc-rows");
+  months.forEach(function(mo){
+    var tot=mo.v.reduce(function(a,b){return a+b;},0);
+    rows+='<tr><td class="num">M'+mo.m+'</td><td>'+mo.mark+'</td>'+mo.v.map(function(v){return '<td class="r">'+v.toLocaleString("pt-BR")+'</td>';}).join('')+'<td class="r">'+tot.toLocaleString("pt-BR")+'</td><td class="r">'+mo.opt.toLocaleString("pt-BR")+'</td></tr>';
+  });
+  tb.innerHTML=rows;
+  // tooltip
+  var tip=document.createElement("div"); tip.className="tip"; tip.hidden=true; document.body.appendChild(tip);
+  function show(t,ev){
+    tip.innerHTML='<div>'+t.getAttribute("data-m")+'</div><div><span class="num">'+t.getAttribute("data-s")+': US$ '+Number(t.getAttribute("data-v")).toLocaleString("pt-BR")+'</span></div><div>total conservador US$ '+Number(t.getAttribute("data-t")).toLocaleString("pt-BR")+' · otimista US$ '+Number(t.getAttribute("data-o")).toLocaleString("pt-BR")+'</div>';
+    tip.hidden=false; place(ev,t);
+  }
+  function place(ev,t){
+    var x,yy; if(ev && ev.clientX!=null){x=ev.clientX;yy=ev.clientY;} else {var b=t.getBoundingClientRect();x=b.left+b.width/2;yy=b.top;}
+    var tw=tip.offsetWidth, th=tip.offsetHeight, vw=window.innerWidth;
+    var lx=x+14; if(lx+tw>vw-8) lx=x-tw-14; if(lx<8) lx=8;
+    var ly=yy-th-12; if(ly<8) ly=yy+16;
+    tip.style.left=lx+'px'; tip.style.top=ly+'px';
+  }
+  var svg=document.getElementById("fc");
+  svg.addEventListener("mousemove",function(e){var t=e.target.closest(".seg"); if(t) show(t,e); else tip.hidden=true;});
+  svg.addEventListener("mouseleave",function(){tip.hidden=true;});
+  svg.addEventListener("focusin",function(e){var t=e.target.closest(".seg"); if(t) show(t,null);});
+  svg.addEventListener("focusout",function(){tip.hidden=true;});
+})();
+</script>

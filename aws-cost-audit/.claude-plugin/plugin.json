@@ -1,0 +1,52 @@
+{
+  "name": "aws-cost-audit",
+  "displayName": "AWS Cost Audit",
+  "version": "0.1.0",
+  "description": "Read-only AWS cost audit that ends in a phased cuts plan: the bill classified into fixed categories, the biggest lines, what can be cut now, what needs engineering, what needs architecture or contract changes, with a monthly savings forecast and the production impact of every action. Works with or without Kubernetes. It never changes the account.",
+  "author": {
+    "name": "Whitebeard",
+    "email": "code@whitebeard.dev"
+  },
+  "homepage": "https://github.com/whitebeardit/claude-plugins/tree/main/aws-cost-audit",
+  "repository": "https://github.com/whitebeardit/claude-plugins",
+  "license": "MIT",
+  "keywords": [
+    "aws",
+    "finops",
+    "cost",
+    "cost-explorer",
+    "savings-plans",
+    "cloudwatch",
+    "eks",
+    "read-only"
+  ],
+  "userConfig": {
+    "payer_profile": {
+      "type": "string",
+      "title": "AWS CLI profile of the payer account",
+      "description": "The consolidated-billing (management) account. Cost Explorer run here sees every linked account; run from a member account it sees only that one."
+    },
+    "member_profiles": {
+      "type": "string",
+      "title": "AWS CLI profiles of the accounts to inspect",
+      "description": "Comma-separated, e.g. prod-infra,staging. Leave blank if everything lives in the payer account."
+    },
+    "region": {
+      "type": "string",
+      "title": "Main region",
+      "description": "Where the workloads run, e.g. us-east-1. Cost Explorer is global; CloudWatch and EC2 calls use this.",
+      "default": "us-east-1"
+    },
+    "kube_context": {
+      "type": "string",
+      "title": "kubectl context of the production cluster (optional)",
+      "description": "Only if there is an EKS cluster. Leave blank for ECS, plain EC2 or serverless accounts."
+    },
+    "timezone_offset": {
+      "type": "string",
+      "title": "Local timezone offset for hour-of-day profiles",
+      "description": "Hours from UTC, e.g. -3 for Brasilia, -5 for New York, 1 for Berlin. Peaks and off-peak windows are reported in this zone.",
+      "default": "-3"
+    }
+  }
+}

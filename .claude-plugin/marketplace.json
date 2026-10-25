@@ -23,6 +23,24 @@
         "trace",
         "sre"
       ]
+    },
+    {
+      "name": "aws-cost-audit",
+      "displayName": "AWS Cost Audit",
+      "source": "./aws-cost-audit",
+      "description": "Read-only AWS cost audit, with or without Kubernetes: the bill in fixed categories, the biggest lines, and a four-stage cuts plan with a monthly savings forecast and the production impact of every action.",
+      "category": "cost",
+      "license": "MIT",
+      "keywords": [
+        "aws",
+        "finops",
+        "cost",
+        "cost-explorer",
+        "savings-plans",
+        "cloudwatch",
+        "eks",
+        "read-only"
+      ]
     }
   ]
 }

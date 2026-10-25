@@ -5,6 +5,7 @@ A [Claude Code](https://claude.com/claude-code) plugin marketplace.
 ```
 /plugin marketplace add whitebeardit/claude-plugins
 /plugin install sherlock-holmes@whitebeard-plugins
+/plugin install aws-cost-audit@whitebeard-plugins
 ```
 
 ## Plugins
@@ -12,6 +13,7 @@ A [Claude Code](https://claude.com/claude-code) plugin marketplace.
 | Plugin | What it does | Docs |
 | --- | --- | --- |
 | [**sherlock-holmes**](sherlock-holmes/) | Incident investigation by trace ID, over Grafana Loki and Tempo, with an optional interactive sequence diagram of the trace, and a deterministic error sweep of a time window. Read-only. | [README](sherlock-holmes/README.md) · [Quick setup](sherlock-holmes/README.md#quick-setup) · [Design decisions](sherlock-holmes/docs/design-decisions.md) |
+| [**aws-cost-audit**](aws-cost-audit/) | Read-only AWS cost audit that ends in a four-stage cuts plan: the bill in fixed categories, the biggest lines, what to cut now, what needs engineering or contracts, monthly savings forecast, production impact per action. Works with or without Kubernetes. | [README](aws-cost-audit/README.md) |
 
 ### Sherlock Holmes
 
