@@ -48,5 +48,6 @@
       "description": "Hours from UTC, e.g. -3 for Brasilia, -5 for New York, 1 for Berlin. Peaks and off-peak windows are reported in this zone.",
       "default": "-3"
     }
-  }
+  },
+  "icon": ".claude-plugin/icon.png"
 }
